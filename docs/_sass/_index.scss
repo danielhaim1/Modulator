@@ -5,7 +5,7 @@ html {
     min-height: 100%;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
         Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-    background: linear-gradient(to bottom, #d32f2f, #f44336, #ffeb3b);
+    background: linear-gradient(to bottom, #d32f2f 3%, #f44336 10%, #ffeb3b);
     -webkit-font-smoothing: antialiased;
     &::-webkit-scrollbar {
         width: 10px;
