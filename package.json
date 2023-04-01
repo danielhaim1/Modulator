@@ -1,6 +1,6 @@
 {
     "name": "@danielhaim/event-modulator",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "An advanced debouncer designed to optimize high-frequency events",
     "keywords": [
         "debounce",
