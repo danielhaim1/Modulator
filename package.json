@@ -26,11 +26,16 @@
     "files": [
         "LICENSE",
         "README.md",
-        "babel.config.js",
         "package-lock.json",
         "package.json",
-        "src/**/*",
-        "webpack.config.js"
+        "src/index.js",
+        "src/eventModulator.js",
+        "dist/event.modulator.js",
+        "dist/event.modulator.min.js",
+        "dist/event.modulator.browser.js",
+        "dist/demo.png",
+        "webpack.config.js",
+        "babel.config.js"
     ],
     "author": {
         "name": "Daniel Haim",
