@@ -3,7 +3,6 @@
 [![npm version](https://img.shields.io/npm/v/@danielhaim/event-modulator)](https://www.npmjs.com/package/@danielhaim/event-modulator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Downloads](https://img.shields.io/npm/dt/@danielhaim/event-modulator.svg)](https://www.npmjs.com/package/@danielhaim/event-modulator)
-[![Known Vulnerabilities](https://snyk.io/test/github/danielhaim/event-modulator/badge.svg)](https://snyk.io/test/github/danielhaim/event-modulator)
 
 Event Modulator is an advanced debouncing function designed to optimize high-frequency events in web applications such as scroll, resize, input, by delaying the execution of the original function until a certain amount of time has passed since the last call, the function enhances the performance of the application by reducing unnecessary function calls and ensuring that the function is only executed when needed. Additionally, the function includes a cache system that stores the results of the function calls, avoiding unnecessary repeated function executions for the same set of arguments.
 
