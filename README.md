@@ -9,13 +9,13 @@ Event Modulator is an advanced debouncing function designed to optimize high-fre
 
 ## Demo
 
-<a target="_blank" href="https://danielhaim1.github.io/modulate/"><img src="dist/demo.png" width="100%" height="auto"></a>
+<a target="_blank" href="https://danielhaim1.github.io/event-modulator/"><img src="dist/demo.png" width="100%" height="auto"></a>
 
 ## Installation
 You can install this module via npm:
 
 ```bash
-npm i @danielhaim/event-modulator
+npm i event-modulator
 ```
 
 ### Usage (Node.js)
