@@ -1,7 +1,7 @@
 // Scorll Down Logger
 function scrollOutputToBottom() {
-    const output = document.querySelector("#output");
-    output.scrollTop = output.scrollHeight;
+  const output = document.querySelector("#output");
+  output.scrollTop = output.scrollHeight;
 }
 
 // Logger
@@ -9,9 +9,21 @@ const eventData = new Map();
 const modulatorDelay = 500;
 const logDelay = 1000;
 
-
-function logEvent(event, delay = 0, count = null, eventType = null, useModulator = false, onComplete = null) {
-  const timestamp = new Date().toLocaleTimeString(undefined, { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3 });
+function logEvent(
+  event,
+  delay = 0,
+  count = null,
+  eventType = null,
+  useModulator = false,
+  onComplete = null
+) {
+  const timestamp = new Date().toLocaleTimeString(undefined, {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    fractionalSecondDigits: 3
+  });
   let color = "#fff";
 
   switch (eventType) {
@@ -43,7 +55,16 @@ function logEvent(event, delay = 0, count = null, eventType = null, useModulator
   if (useModulator) {
     setTimeout(() => {
       const completedEvent = `${new Date().toLocaleTimeString()}: ${event} ${countText} completed after ${timer}.`;
-      output.innerHTML += `<span style="color:#777">${new Date().toLocaleTimeString(undefined, { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3 })}:</span> <span style="color:${color}">${completedEvent}</span><br />`;
+      output.innerHTML += `<span style="color:#777">${new Date().toLocaleTimeString(
+        undefined,
+        {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          fractionalSecondDigits: 3
+        }
+      )}:</span> <span style="color:${color}">${completedEvent}</span><br />`;
       if (onComplete !== null) {
         onComplete();
       }
@@ -68,7 +89,7 @@ function onCompletedEvent(eventType, count) {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
-        fractionalSecondDigits: 3,
+        fractionalSecondDigits: 3
       });
       let color = "#fff";
 
@@ -99,8 +120,6 @@ function onCompletedEvent(eventType, count) {
   }
 }
 
-
-
 const container = document.querySelector(".container");
 const output = document.querySelector("#output");
 
@@ -109,24 +128,14 @@ function addEventListeners() {
   window.addEventListener(
     "resize",
     useModulator
-      ? modulate(
-          () => {
-            resizeDebounceExecuting = true;
-            resizeCounter++;
-            logEvent(
-              `Resize detected`,
-              logDelay,
-              null,
-              "resize",
-              true,
-              () => {
-                onCompletedEvent("resize", resizeCounter);
-                resizeDebounceExecuting = false;
-              }
-            );
-          },
-          modulatorDelay
-        )
+      ? modulate(() => {
+          resizeDebounceExecuting = true;
+          resizeCounter++;
+          logEvent(`Resize detected`, logDelay, null, "resize", true, () => {
+            onCompletedEvent("resize", resizeCounter);
+            resizeDebounceExecuting = false;
+          });
+        }, modulatorDelay)
       : () => {
           resizeListener();
           onCompletedEvent("resize", resizeCounter);
@@ -136,24 +145,21 @@ function addEventListeners() {
   window.addEventListener(
     "scroll",
     useModulator
-      ? modulate(
-          () => {
-            scrollDebounceExecuting = true;
-            scrollCounter++;
-            logEvent(
-              `window.scroll #${scrollCounter} detected`,
-              logDelay,
-              null,
-              "scroll",
-              true,
-              () => {
-                onCompletedEvent("scroll", scrollCounter);
-                scrollDebounceExecuting = false;
-              }
-            );
-          },
-          modulatorDelay
-        )
+      ? modulate(() => {
+          scrollDebounceExecuting = true;
+          scrollCounter++;
+          logEvent(
+            `window.scroll #${scrollCounter} detected`,
+            logDelay,
+            null,
+            "scroll",
+            true,
+            () => {
+              onCompletedEvent("scroll", scrollCounter);
+              scrollDebounceExecuting = false;
+            }
+          );
+        }, modulatorDelay)
       : () => {
           scrollListener();
           onCompletedEvent("scroll", scrollCounter);
@@ -163,24 +169,21 @@ function addEventListeners() {
   window.addEventListener(
     "click",
     useModulator
-      ? modulate(
-          () => {
-            clickDebounceExecuting = true;
-            clickCounter++;
-            logEvent(
-              `window.click #${clickCounter} detected`,
-              logDelay,
-              null,
-              "click",
-              true,
-              () => {
-                onCompletedEvent("click", clickCounter);
-                clickDebounceExecuting = false;
-              }
-            );
-          },
-          modulatorDelay
-        )
+      ? modulate(() => {
+          clickDebounceExecuting = true;
+          clickCounter++;
+          logEvent(
+            `window.click #${clickCounter} detected`,
+            logDelay,
+            null,
+            "click",
+            true,
+            () => {
+              onCompletedEvent("click", clickCounter);
+              clickDebounceExecuting = false;
+            }
+          );
+        }, modulatorDelay)
       : () => {
           clickListener();
           onCompletedEvent("click", clickCounter);
@@ -201,7 +204,12 @@ const modulatedResizeListener = modulate(() => {
   resizeListener();
   const endTime = performance.now();
   const duration = endTime - startTime;
-  logEvent(`Resize executed in ${duration.toFixed(2)}ms`, 0, resizeCounter, "resize");
+  logEvent(
+    `Resize executed in ${duration.toFixed(2)}ms`,
+    0,
+    resizeCounter,
+    "resize"
+  );
   resizeDebounceExecuting = false;
 }, modulatorDelay);
 
@@ -222,7 +230,12 @@ const modulatedScrollListener = modulate(() => {
   scrollListener();
   const endTime = performance.now();
   const duration = endTime - startTime;
-  logEvent(`Scroll executed in ${duration.toFixed(2)}ms`, 0, scrollCounter, "scroll");
+  logEvent(
+    `Scroll executed in ${duration.toFixed(2)}ms`,
+    0,
+    scrollCounter,
+    "scroll"
+  );
   scrollDebounceExecuting = false;
 }, modulatorDelay);
 
@@ -243,23 +256,27 @@ const modulatedClickListener = modulate(() => {
   clickListener();
   const endTime = performance.now();
   const duration = endTime - startTime;
-  logEvent(`Click executed in ${duration.toFixed(2)}ms`, 0, clickCounter, "click");
+  logEvent(
+    `Click executed in ${duration.toFixed(2)}ms`,
+    0,
+    clickCounter,
+    "click"
+  );
   clickDebounceExecuting = false;
 }, modulatorDelay);
 
-
 function removeEventListeners() {
-    window.removeEventListener("resize", modulatedResizeListener);
-    window.removeEventListener("scroll", modulatedScrollListener);
-    window.removeEventListener("click", modulatedClickListener);
+  window.removeEventListener("resize", modulatedResizeListener);
+  window.removeEventListener("scroll", modulatedScrollListener);
+  window.removeEventListener("click", modulatedClickListener);
 
-    window.removeEventListener("resize", resizeListener);
-    window.removeEventListener("scroll", scrollListener);
-    window.removeEventListener("click", clickListener);
+  window.removeEventListener("resize", resizeListener);
+  window.removeEventListener("scroll", scrollListener);
+  window.removeEventListener("click", clickListener);
 
-    isResizing = 0;
-    isScrolling = 0;
-    isClicking = 0;
+  isResizing = 0;
+  isScrolling = 0;
+  isClicking = 0;
 }
 
 const toggleSwitch = document.getElementById("toggleDebounce");
