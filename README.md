@@ -15,7 +15,7 @@ Event Modulator is an advanced debouncing function designed to optimize high-fre
 You can install this module via npm:
 
 ```bash
-npm i event-modulator
+npm i @danielhaim/event-modulator
 ```
 
 ### Usage (Node.js)
