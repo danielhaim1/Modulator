@@ -167,9 +167,9 @@ Time:        0.143 s, estimated 6 s
 
 ## Resources
 
-[The Debouncing and Throttling Explained article on the CSS-Tricks website](https://css-tricks.com/debouncing-throttling-explained-examples/)
-[The Underscore.js documentation on the debounce function](https://underscorejs.org/#debounce)
-[The Lodash documentation on the debounce function](https://lodash.com/docs/4.17.15#debounce)
+- [The Debouncing and Throttling Explained article on the CSS-Tricks website](https://css-tricks.com/debouncing-throttling-explained-examples/)
+- [The Underscore.js documentation on the debounce function](https://underscorejs.org/#debounce)
+- [The Lodash documentation on the debounce function](https://lodash.com/docs/4.17.15#debounce)
 
 ## Report Bugs
 
