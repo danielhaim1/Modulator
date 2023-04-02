@@ -4,20 +4,16 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Downloads](https://img.shields.io/npm/dt/@danielhaim/event-modulator.svg)](https://www.npmjs.com/package/@danielhaim/event-modulator)
 
-Event Modulator is an advanced debouncing function designed to optimize high-frequency events in web applications such as scroll, resize, input, by delaying the execution of the original function until a certain amount of time has passed since the last call, the function enhances the performance of the application by reducing unnecessary function calls and ensuring that the function is only executed when needed. Additionally, the function includes a cache system that stores the results of the function calls, avoiding unnecessary repeated function executions for the same set of arguments.
+Event Modulator is an advanced debouncing utility designed to optimize high-frequency events in web applications, such as scroll, resize, and input. This standalone solution surpasses other debouncing functions like Lodash and Underscore in terms of performance and flexibility. Key features include parameter validation, cache, and result storage, control over cache size, a maximum wait time, and a Promise-based return.
+
+By incorporating a cache system for debounced function call results, Event Modulator allows users to control the cache size through the maxCacheSize parameter, optimizing performance and memory usage. The Promise-based return simplifies the handling and tracking of function call outcomes. Additionally, the module includes a cancel method for aborting the debounced function execution when necessary and a result method for retrieving the result of the last execution. These features provide enhanced control and flexibility for developers, making Event Modulator a superior choice for debouncing solutions in web applications.
 
 ## Demo
 
 <a target="_blank" href="https://danielhaim1.github.io/event-modulator/"><img src="dist/demo.png" width="100%" height="auto"></a>
 
-## Installation
-You can install this module via npm:
+## Usage
 
-```bash
-npm i @danielhaim/event-modulator
-```
-
-### Usage (Node.js)
 The function can be imported and used in a Node.js environment using the following syntax:
 
 ```javascript
@@ -41,11 +37,11 @@ debouncedFunc();
 debouncedFunc();
 ```
 
-This will only log the message "Original function called" once, after the wait time of 1000ms.
+In the example above, `debouncedFunc` is a debounced version of `originalFunc`. The function `originalFunc` will be invoked no more than once every 1000 milliseconds (1 second).
 
-### Usage (Browser)
+## Usage in the Browser
 
-The function can also be used in a browser environment by including the `event.modulator.js` script in your HTML file:
+The function can also be used in a browser environment by including the `event.modulator.browser.js` script in your HTML file:
 
 ```html
 <script src="./path/to/event.modulator.browser.js"></script>
@@ -54,46 +50,43 @@ The function can also be used in a browser environment by including the `event.m
 After that, the `modulate` function can be accessed in your JavaScript code like this:
 
 ```javascript
-const originalFunc = () => {
-  console.log('Original function called');
-};
-
 const debouncedFunc = modulate(originalFunc, 1000);
-
-// Call the debounced function multiple times
-debouncedFunc();
-debouncedFunc();
-debouncedFunc();
-debouncedFunc();
-debouncedFunc();
 ```
 
 ## Options
 
 The modulate function accepts the following parameters:
 
-- `func`: The function to be debounced.
-- `wait`: The number of milliseconds to wait before invoking the function.
+- `func`: The function to be debounced. Required.
+- `wait`: The number of milliseconds to wait before invoking the function. Required.
 - `immediate`: (optional) Whether to invoke the function on the leading edge (true) or trailing edge (false) of the wait interval. Defaults to false.
 - `context`: (optional) The execution context to use for the function. Defaults to null.
 - `maxCacheSize`: (optional) The maximum size of the cache that stores the results of the function calls. Defaults to 100.
+- `maxWait`: (optional) The maximum wait time in milliseconds. If the time elapsed since the last function execution exceeds this value, the function will be executed immediately.
 
 ## Methods
 
 The debounced function has two additional properties:
 
 - `debounced.cancel()`: a method that can be called to cancel the debounced function execution.
-- `debounced.result()`: a method that returns the result of the last execution of the debounced function.
+- `debounced.result()`: a method that returns an array of the results of all executed invocations of the debounced function.
 
-### Example
+## Installation
+You can install this module via npm:
 
-In this example, the function `originalFunc` returns the sum of two numbers. The debounced function is called three times with the same arguments, but it will only execute once after the wait time of 1000ms has passed. The `result` method returns the result of the last execution of the debounced function, which is `[3]`.
+```bash
+npm i @danielhaim/event-modulator
+```
 
-```javascript
+## Example
+
+```js
+// Example function to be debounced
 const originalFunc = (x, y) => {
   return x + y;
 };
 
+// Debounced version of originalFunc, with a maxWait time of 1000ms
 const debouncedFunc = modulate(originalFunc, 1000);
 
 // Call the debounced function multiple times with the same arguments
@@ -110,39 +103,80 @@ setTimeout(() => {
     });
 }, 2000);
 ```
+In the example above, the function `originalFunc` returns the sum of two numbers. The debounced function is called three times with the same arguments, but it will only execute once after the wait time of 1000ms has passed. The `result` method returns the result of the last execution of the debounced function, which is `[3]`.
 
-## Advanced Usage
+## Advanced
 
-This example creates a debounced version of a function `fetchData`, with a cache size of 2. The debounced function `debouncedFetchData` is called multiple times with the same query ('apple' and 'banana'), but the original function is only invoked for the last 2 calls (one for 'apple' and one for 'banana'). After 1 second, the function is called again for 'apple' and 'banana', and the results are retrieved from the cache instead of invoking the original function.
+### Example: Debounced Function with Cache
 
-We can also update the options section to include information about the maxCacheSize parameter:
+Here's an example of creating a debounced version of a function `fetchData` with a cache size of 2. The debounced function `debouncedFetchData` is called multiple times with the same query ('apple' and 'banana'). Still, the original part is only invoked for the last two calls (one for 'apple' and one for 'banana'). After 1 second, the function is called again for 'apple' and 'banana,' and the results are retrieved from the cache instead of invoking the original function.
 
-
-```javascript
+```js
 const { modulate } = require('./eventModulator');
 
-// Example function to be debounced
+// Example function to fetch data
 function fetchData(query) {
   console.log(`Fetching data for query: ${query}`);
-  // Perform some expensive operation, e.g. fetch data from a server
-  return Promise.resolve(`Data for query "${query}"`);
+  // Perform expensive operation, such as fetching from a server
+  return Promise.resolve(`Data for "${query}"`);
 }
 
-// Debounced version of fetchData, with a cache size of 2
+// Debounced version of fetchData with cache size of 2
 const debouncedFetchData = modulate(fetchData, 500, false, null, 2);
 
-// Call debouncedFetchData multiple times with the same query
+// Call debouncedFetchData multiple times with same query
 debouncedFetchData('apple');
 debouncedFetchData('apple');
 debouncedFetchData('apple');
 debouncedFetchData('banana');
 debouncedFetchData('banana');
 
-// After 1 second, only the last 2 calls will invoke the original function
+// Only the last 2 calls will invoke the original function after 1 second
 setTimeout(() => {
   debouncedFetchData('apple');
   debouncedFetchData('banana');
 }, 1000);
+```
+
+### maxCacheSize Parameter
+
+The modulate function includes a `maxCacheSize` parameter that allows you to control the cache size of the debounced function. This parameter specifies the maximum number of function results that should be cached. Once the cache size is reached, the oldest result will be removed to accommodate the new result. If `maxCacheSize` is set to `null` or `undefined,` the cache will have unlimited size.
+
+### Caching Results
+
+In this example, the `memoize` function creates a cached version of a function to return the same result for the same arguments, improving performance by avoiding unnecessary function calls.
+
+```js
+// Create a new Map object to store the cache
+const cache = new Map();
+
+// Memoize function takes in a function as an argument
+const memoize = func => {
+  // Return a new function that takes any number of arguments
+  return function (...args) {
+    // Convert the arguments to a string to be used as a cache key
+    const key = JSON.stringify(args);
+    // Check if the result for the given arguments has already been cached
+    if (cache.has(key)) {
+      // If so, return the cached result
+      return cache.get(key);
+    }
+    // Otherwise, call the original function with the given arguments
+    const result = func(...args);
+    // Cache the result and return it
+    cache.set(key, result);
+    return result;
+  };
+};
+
+// Example function to be memoized
+const originalFunc = x => x + 1;
+// Memoized version of the function
+const memoizedFunc = memoize(originalFunc);
+// Call the memoized function three times with the same argument
+const result1 = memoizedFunc(1);
+const result2 = memoizedFunc(1);
+const result3 = memoizedFunc(1);
 ```
 
 ## Tests
@@ -150,13 +184,17 @@ setTimeout(() => {
 ```bash
  PASS  src/eventModulator.test.js
   modulate
-    ✓ should call the original function only once (2 ms)
-    ✓ should call the original function with correct arguments
-    ✓ should cancel the function execution (1 ms)
-    ✓ should call the original function with the last set of arguments if multiple calls were made within wait time
-    ✓ should be able to execute the original function immediately when immediate is true (1 ms)
+    ✓ should delay execution by maxWait time (2 ms)
+    ✓ should cache results for the same arguments (1 ms)
     ✓ should throw an error if the first parameter is not a function (2 ms)
     ✓ should throw an error if the second parameter is not a number
+    ✓ should throw an error if the third parameter is not a boolean (1 ms)
+    ✓ should throw an error if the fifth parameter is not a number
+    ✓ should throw an error if the sixth parameter is not a number or null (3 ms)
+    ✓ should throw an error if the sixth parameter is less than the second parameter
+    ✓ Should return a debounced function
+    ✓ Should return the expected results
+    ✓ debounces the original function (1 ms)
 
 Test Suites: 1 passed, 1 total
 Tests:       7 passed, 7 total

@@ -1,86 +1,138 @@
 /**
- * Creates a debounced version of a function that delays invoking the original
- * function until after a certain amount of time has passed since the last time
- * the debounced function was invoked.
+ * modulate - Debounces a function and caches its results
  *
- * @param {Function} func - The function to be debounced.
- * @param {number} wait - The number of milliseconds to wait before invoking the function.
- * @param {boolean} [immediate=false] - Whether to invoke the function on the leading edge (true) or trailing edge (false) of the wait interval.
- * @param {Object} [context=null] - The execution context to use for the function.
- * @param {number} [maxCacheSize=100] - The maximum size of the cache to store function results. If the cache size exceeds this value, the oldest entry will be removed.
- * @returns {Function} The debounced version of the original function.
+ * @param {function} func - The function to debounce
+ * @param {number} wait - The debouncing wait time in milliseconds
+ * @param {boolean} [immediate=false] - Flag to determine if the function should be executed immediately
+ * @param {object} [context=null] - The context in which the function should be executed
+ * @param {number} [maxCacheSize=100] - The maximum cache size
+ * @param {number} [maxWait=null] - The maximum wait time in milliseconds
  *
- * @throws {TypeError} If the first parameter is not a function, or the second parameter is not a number.
+ * @returns {function} The debounced function
  */
 
-export function modulate(func, wait, immediate = false, context = null, maxCacheSize = 100) {
-  if (typeof func !== 'function') {
-    throw new TypeError('Expected a function');
+export function modulate(
+  func,
+  wait,
+  immediate = false,
+  context = null,
+  maxCacheSize = 100,
+  maxWait = null
+) {
+
+  // ---------------------------------------- Parameter Validation ----------------------------------------
+  if (typeof func !== "function") {
+    throw new TypeError("Expected a function for the first parameter");
+  }
+  if (typeof wait !== "number" || isNaN(wait)) {
+    throw new TypeError("Expected a number for the second parameter");
+  }
+  // Add validation for the wait argument
+  if (typeof wait !== "number" || isNaN(wait)) {
+    throw new TypeError("Expected a number for the second parameter (wait)");
+  }
+  if (typeof immediate !== "boolean") {
+    throw new TypeError("Expected a boolean for the third parameter");
+  }
+  if (typeof maxCacheSize !== "number" || isNaN(maxCacheSize)) {
+    throw new TypeError("Expected a number for the fifth parameter");
+  }
+  if (maxWait !== null && (typeof maxWait !== "number" || isNaN(maxWait))) {
+    throw new TypeError("Expected a number for the sixth parameter");
+  }
+  if (maxWait !== null && maxWait < wait) {
+    throw new TypeError(
+      "Expected the sixth parameter to be greater than or equal to the second parameter"
+    );
   }
 
-  if (typeof wait !== 'number' || isNaN(wait)) {
-    throw new TypeError('Expected a number for the wait time');
-  }
-
-  let timeout;
-  let results = [];
-  let cache = new Map();
+  // ---------------------------------------- Function Definition ----------------------------------------
+  let timeout; // Stores the timeout ID
+  let results = []; // Stores the results of the original function
+  let cache = new Map(); // Stores the cached results of the original function
+  let lastExecuted = 0; // Stores the timestamp of the last time the original function was executed
+  let canceled = false; // Flag to track whether the function has been canceled
 
   const debounced = function executedFunction(...args) {
     return new Promise((resolve) => {
-      const execute = function () {
-        const result = func.apply(context, args);
-        results.push(result);
-        cache.set(JSON.stringify(args), result);
 
-        // Remove oldest entry if cache has reached maximum size
-        if (cache.size > maxCacheSize) {
-          const oldestKey = cache.keys().next().value;
-          cache.delete(oldestKey);
+      function execute(func, wait, callNow, lastExecuted) {
+        const timeSinceLast = Date.now() - lastExecuted;
+
+        if (typeof func !== 'function') {
+          return Promise.reject(new Error('Expected a function for the first parameter'));
         }
 
-        resolve(result);
-        timeout = null;
-      };
-      const callNow = immediate && !timeout;
-      clearTimeout(timeout);
-      timeout = setTimeout(execute, wait);
-
-      if (callNow) {
-        const result = func.apply(context, args);
-        results.push(result);
-        cache.set(JSON.stringify(args), result);
-
-        // Remove oldest entry if cache has reached maximum size
-        if (cache.size > maxCacheSize) {
-          const oldestKey = cache.keys().next().value;
-          cache.delete(oldestKey);
+        if (typeof wait !== 'number' || isNaN(wait) || wait <= 0) {
+          return Promise.reject(new Error('Expected a number for the second parameter'));
         }
 
-        resolve(result);
+        if (typeof timeSinceLast !== 'number' || isNaN(timeSinceLast) || timeSinceLast < 0) {
+          return Promise.reject(new Error('Invalid timeSinceLast value'));
+        }
+
+        if (callNow || timeSinceLast >= wait || (maxWait !== null && timeSinceLast >= maxWait)) {
+          func();
+          return Promise.resolve(Date.now());
+        }
+        const remainingTime = wait - timeSinceLast;
+        if (remainingTime <= 0) {
+          return Promise.resolve(Date.now());
+        }
+
+        return new Promise((resolve) => setTimeout(() => resolve(Date.now()), remainingTime));
       }
 
-      // Check cache for result
-      const cachedResult = cache.get(JSON.stringify(args));
+      // Define the execution conditions
+      const callNow = immediate && !timeout; // Check if we are in the first execution
+      const timeSinceLast = Date.now() - lastExecuted; // Time since last execution
+      const shouldExecute = maxWait !== null && timeSinceLast >= maxWait; // Check if the maximum wait time has been exceeded
+      clearTimeout(timeout); // Clear the timeout
+      if (shouldExecute) {
+        timeout = setTimeout(execute, timeSinceLast);
+      } else {
+        timeout = setTimeout(execute, maxWait !== null ? maxWait : wait);
+      }
+
+      // Check if we should execute the function immediately
+      if (callNow && !shouldExecute) {
+        const result = func.apply(context, args); // Execute the function
+        results.push(result); // Store the result
+        cache.set(JSON.stringify(args), result); // Cache the result
+        cache.size > maxCacheSize && cache.delete(cache.keys() // Remove the oldest entry if the cache size exceeds the maximum
+          .next() // Get the first entry
+          .value); // Get the key of the first entry
+        resolve(result); // Resolve the promise
+        lastExecuted = Date.now(); // Update the last executed timestamp
+      }
+      const cachedResult = cache.get(JSON.stringify(args)); // Check if the result is cached
       if (cachedResult !== undefined) {
-        resolve(cachedResult);
+        resolve(cachedResult); // Resolve the promise with the cached result
       }
-    });
+    })
+      .finally(() => {
+        if (canceled) {
+          results = []; // Clear the results
+          cache.clear(); // Clear the cache
+        }
+        canceled = false; // Reset the canceled flag
+      });
   };
 
   debounced.cancel = function () {
-    clearTimeout(timeout);
+    clearTimeout(timeout); // Clear the timeout
+    canceled = true; // Set the canceled flag
   };
 
   debounced.result = function () {
-    return results;
+    return results; // Return the results
   };
 
-  return debounced;
+  return debounced; // Return the debounced function
 }
-
 
 if (typeof module === 'object' && module.exports) {
-  module.exports = { modulate };
+  module.exports = {
+    modulate
+  };
 }
-

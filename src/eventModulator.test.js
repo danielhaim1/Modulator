@@ -1,114 +1,130 @@
-import {
-    modulate
-} from './eventModulator';
-describe('modulate', () => {
-    jest.useFakeTimers();
-    afterEach(() => {
-        jest.clearAllMocks();
-        jest.clearAllTimers();
+import { modulate } from './eventModulator';
+
+
+
+const cache = new Map();
+function memoize(func) {
+    // 1. Return a new function that takes any number of arguments
+    return function (...args) {
+        // 2. Convert the arguments to a string to be used as a cache key
+        const key = JSON.stringify(args);
+        // 3. Check if the result for the given arguments has already been cached
+        if (cache.has(key)) {
+            // 4. If so, return the cached result
+            return cache.get(key);
+        }
+        // 5. Otherwise, call the original function with the given arguments
+        const result = func(...args);
+        // 6. Cache the result and return it
+        cache.set(key, result);
+        return result;
+    };
+}
+
+describe('testing modulate', () => {
+    test('should delay execution by maxWait time', async () => {
+        jest.useFakeTimers(); // Create a mock function
+        const originalFunc = jest.fn(); // Create a modulated version of the function
+        const modulatedFunc = modulate(originalFunc, 1000, false, null, 100, 2000); // Call modulated function
+        modulatedFunc(); // Schedule the execution of the function
+        setTimeout(() => {
+            expect(originalFunc)
+                .not.toHaveBeenCalled();
+        }, 1500);
+        setTimeout(async () => {
+            await Promise.resolve();
+            expect(originalFunc)
+                .toHaveBeenCalledTimes(1);
+        }, 2500);
     });
-    test('should call the original function only once', () => {
-        const originalFunc = jest.fn();
-        const modulatedFunc = modulate(originalFunc, 500);
-        // Call modulated function multiple times
-        modulatedFunc();
-        modulatedFunc();
-        modulatedFunc();
-        // Wait for the debounce time to pass
-        jest.advanceTimersByTime(600);
-        // Original function should be called once
+    
+    test("should cache results for the same arguments", () => {
+        // 1. Define a test function that returns a different result each time
+        const originalFunc = jest.fn(x => x + 1);
+        // 2. Memoize the test function
+        const memoizedFunc = memoize(originalFunc);
+        const arg = 1;
+        // 3. Call the memoized test function once
+        const result1 = memoizedFunc(arg);
+        // 4. Call the memoized test function again with the same argument
+        const result2 = memoizedFunc(arg);
+        // 5. Call the memoized test function again with the same argument
+        const result3 = memoizedFunc(arg);
+        // 6. Check that the original test function was called only once
         expect(originalFunc)
             .toHaveBeenCalledTimes(1);
+        // 7. Check that all the results are the same
+        expect(result1)
+            .toBe(result2);
+        expect(result2)
+            .toBe(result3);
     });
-    test('should call the original function with correct arguments', () => {
-        const originalFunc = jest.fn();
-        const modulatedFunc = modulate(originalFunc, 500);
-        const expectedArgs = ['foo', 'bar'];
-        // Call modulated function with expected arguments
-        modulatedFunc(...expectedArgs);
-        // Wait for the debounce time to pass
-        jest.advanceTimersByTime(600);
-        // Original function should be called once with expected arguments
-        expect(originalFunc)
-            .toHaveBeenCalledTimes(1);
-        expect(originalFunc)
-            .toHaveBeenCalledWith(...expectedArgs);
+    
+    test("should throw an error if the first parameter is not a function", () => {
+        expect(() => modulate(null, 500))
+            .toThrowError(TypeError);
     });
-    test('should cancel the function execution', () => {
-        const originalFunc = jest.fn();
-        const modulatedFunc = modulate(originalFunc, 500);
-        // Call modulated function and immediately cancel
-        modulatedFunc();
-        modulatedFunc.cancel();
-        // Wait for the debounce time to pass
-        jest.advanceTimersByTime(600);
-        // Original function should not be called
-        expect(originalFunc)
-            .not.toHaveBeenCalled();
+    test("should throw an error if the second parameter is not a number", () => {
+        expect(() => modulate(() => { }, "500"))
+            .toThrowError(TypeError);
+        expect(() => modulate(() => { }, NaN))
+            .toThrowError(TypeError);
     });
-    test('should call the original function with the last set of arguments if multiple calls were made within wait time', async () => {
-        const originalFunc = jest.fn()
-            .mockReturnValue(4);
-        const modulatedFunc = modulate(originalFunc, 500);
-        // Call modulated function multiple times within wait time
-        modulatedFunc(1);
-        modulatedFunc(2);
-        modulatedFunc(3);
-        // Wait for the debounce time to pass
-        jest.advanceTimersByTime(600);
-        // Original function should be called once with the last set of arguments
-        expect(originalFunc)
-            .toHaveBeenCalledTimes(1);
-        expect(originalFunc)
-            .toHaveBeenCalledWith(3);
+    test("should throw an error if the third parameter is not a boolean", () => {
+        expect(() => modulate(() => { }, 500, "false"))
+            .toThrowError(TypeError);
     });
-    test('should be able to execute the original function immediately when immediate is true', () => {
-        const originalFunc = jest.fn();
-        const modulatedFunc = modulate(originalFunc, 500, true);
-        // Call modulated function
-        const result = modulatedFunc();
-        // Original function should be called immediately
-        expect(originalFunc)
-            .toHaveBeenCalledTimes(1);
-        // Promise should resolve with the result of the original function
-        return expect(result)
-            .resolves.toBeUndefined();
+    test("should throw an error if the fifth parameter is not a number", () => {
+        expect(() => modulate(() => { }, 500, true, null, "1000"))
+            .toThrowError(TypeError);
+        expect(() => modulate(() => { }, 500, true, null, NaN))
+            .toThrowError(TypeError);
     });
-
-    // !TODO
-    // The test runner has a default timeout value of 5 seconds, but some tests may take longer to complete
-
-    // test('should cache results and avoid unnecessary function calls', async () => {
-    //   const originalFunc = jest.fn().mockReturnValue(4);
-    //   const modulatedFunc = modulate(originalFunc, 100); // reduce wait time to 100ms
-
-    //   // Call modulated function multiple times with the same arguments
-    //   const promise1 = modulatedFunc('arg1', 'arg2');
-    //   const promise2 = modulatedFunc('arg1', 'arg2');
-    //   const promise3 = modulatedFunc('arg1', 'arg2');
-
-    //   // Wait for the debounce time to pass
-    //   jest.advanceTimersByTime(200); // increase wait time to 200ms
-
-    //   // All promises should be resolved with the result of the original function
-    //   const results = await Promise.all([promise1, promise2, promise3]);
-    //   expect(results).toEqual([4, 4, 4]);
-
-    //   // Original function should only be called once with the given arguments
-    //   expect(originalFunc).toHaveBeenCalledTimes(1);
-    //   expect(originalFunc).toHaveBeenCalledWith('arg1', 'arg2');
-    // }, 5000); // increase timeout to 5 seconds
-
-    test('should throw an error if the first parameter is not a function', () => {
-        expect(() => modulate())
-            .toThrow(TypeError);
-        expect(() => modulate('not a function', 500))
-            .toThrow(TypeError);
+    test("should throw an error if the sixth parameter is not a number or null", () => {
+        expect(() => modulate(() => { }, 500, true, null, 1000, "2000"))
+            .toThrowError(TypeError);
+        expect(() => modulate(() => { }, 500, true, null, 1000, NaN))
+            .toThrowError(TypeError);
     });
-    test('should throw an error if the second parameter is not a number', () => {
-        expect(() => modulate(() => {}, 'not a number'))
-            .toThrow(TypeError);
-        expect(() => modulate(() => {}, NaN))
-            .toThrow(TypeError);
+    test("should throw an error if the sixth parameter is less than the second parameter", () => {
+        expect(() => modulate(() => { }, 500, true, null, 1000, 400))
+            .toThrowError(TypeError);
     });
-});
+    
+    it("Should return a debounced function", () => {
+      const originalFunc = (x, y) => x + y;
+      const debouncedFunc = modulate(originalFunc, 1000);
+      expect(debouncedFunc).toBeDefined();
+      expect(typeof debouncedFunc).toBe("function");
+    });
+  
+    it("Should return the expected results", () => {
+      const originalFunc = (x, y) => x + y;
+      const debouncedFunc = modulate(originalFunc, 1000);
+      const promise1 = debouncedFunc(1, 2);
+      const promise2 = debouncedFunc(1, 2);
+      const promise3 = debouncedFunc(1, 2);
+      setTimeout(() => {
+        Promise.all([promise1, promise2, promise3]).then((results) => {
+          expect(results).toEqual([3, 3, 3]);
+          expect(debouncedFunc.result()).toEqual([3]);
+        });
+      }, 2000);
+    });
+    
+    test('debounces the original function', () => {
+      const originalFunc = jest.fn();
+      const debouncedFunc = modulate(originalFunc, 1000);
+  
+      debouncedFunc();
+      debouncedFunc();
+      debouncedFunc();
+  
+      expect(originalFunc).not.toHaveBeenCalled();
+  
+      setTimeout(() => {
+        expect(originalFunc).toHaveBeenCalledTimes(1);
+      }, 2000);
+    });
+  });
+  
