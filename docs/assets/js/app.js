@@ -239,44 +239,44 @@ const modulatedScrollListener = modulate(() => {
   scrollDebounceExecuting = false;
 }, modulatorDelay);
 
-let clickCounter = 0;
-let clickDebounceExecuting = false;
-let clickListener = () => {
-  clickCounter++;
-  logEvent(`Click`, 1000, clickCounter, "click");
-};
+// let clickCounter = 0;
+// let clickDebounceExecuting = false;
+// let clickListener = () => {
+//   clickCounter++;
+//   logEvent(`Click`, 1000, clickCounter, "click");
+// };
 
-const modulatedClickListener = modulate(() => {
-  if (clickDebounceExecuting) {
-    return;
-  }
-  clickDebounceExecuting = true;
-  const startTime = performance.now();
-  logEvent(`Click detected`, 0, clickCounter, "click");
-  clickListener();
-  const endTime = performance.now();
-  const duration = endTime - startTime;
-  logEvent(
-    `Click executed in ${duration.toFixed(2)}ms`,
-    0,
-    clickCounter,
-    "click"
-  );
-  clickDebounceExecuting = false;
-}, modulatorDelay);
+// const modulatedClickListener = modulate(() => {
+//   if (clickDebounceExecuting) {
+//     return;
+//   }
+//   clickDebounceExecuting = true;
+//   const startTime = performance.now();
+//   logEvent(`Click detected`, 0, clickCounter, "click");
+//   clickListener();
+//   const endTime = performance.now();
+//   const duration = endTime - startTime;
+//   logEvent(
+//     `Click executed in ${duration.toFixed(2)}ms`,
+//     0,
+//     clickCounter,
+//     "click"
+//   );
+//   clickDebounceExecuting = false;
+// }, modulatorDelay);
 
 function removeEventListeners() {
   window.removeEventListener("resize", modulatedResizeListener);
   window.removeEventListener("scroll", modulatedScrollListener);
-  window.removeEventListener("click", modulatedClickListener);
+  // window.removeEventListener("click", modulatedClickListener);
 
   window.removeEventListener("resize", resizeListener);
   window.removeEventListener("scroll", scrollListener);
-  window.removeEventListener("click", clickListener);
+  // window.removeEventListener("click", clickListener);
 
   isResizing = 0;
   isScrolling = 0;
-  isClicking = 0;
+  // isClicking = 0;
 }
 
 const toggleSwitch = document.getElementById("toggleDebounce");
@@ -288,13 +288,13 @@ toggleSwitch.addEventListener("change", (event) => {
   if (event.target.checked) {
     window.addEventListener("resize", modulatedResizeListener);
     window.addEventListener("scroll", modulatedScrollListener);
-    window.addEventListener("click", modulatedClickListener);
+    // window.addEventListener("click", modulatedClickListener);
     srHidden.textContent = "Modulator On";
     logEvent(`Event Modulator On`, 0, null, "announce");
   } else {
     window.addEventListener("resize", resizeListener);
     window.addEventListener("scroll", scrollListener);
-    window.addEventListener("click", clickListener);
+    // window.addEventListener("click", clickListener);
     srHidden.textContent = "Modulator Off";
     logEvent(`Event Modulator Off`, 0, null, "announce");
   }
