@@ -182,7 +182,7 @@ const result3 = memoizedFunc(1);
 
 ## Tests
 
-```bash
+```
  PASS  src/eventModulator.test.js
   testing modulate
     ✓ should delay execution by maxWait time (1 ms)
