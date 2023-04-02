@@ -45,6 +45,7 @@ The function can also be used in a browser environment by including the `event.m
 
 ```html
 <script src="./path/to/event.modulator.browser.js"></script>
+<script>window.modulate = modulate;</script>
 ```
 
 After that, the `modulate` function can be accessed in your JavaScript code like this:

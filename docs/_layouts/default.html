@@ -10,7 +10,10 @@
 
 <body>
   {{ content }}
-  <script src="assets/js/event.modulator.browser.js"></script>
+
+
+  <script src="{{ site.baseurl }}/assets/js/event.modulator.browser.js"></script>
+  <script>window.modulate = modulate;</script>
   <script src="assets/js/app.js"></script>
 </body>
 

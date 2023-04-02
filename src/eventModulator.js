@@ -20,6 +20,15 @@ export function modulate(
   maxWait = null
 ) {
 
+  // console.log('modulate called');
+  // console.log('First parameter received: ', func);
+  // console.log('Second parameter received: ', wait);
+  // console.log('Third parameter received: ', immediate);
+  // console.log('Fourth parameter received: ', context);
+  // console.log('Fifth parameter received: ', maxCacheSize);
+  // console.log('Sixth parameter received: ', maxWait);
+
+
   // ---------------------------------------- Parameter Validation ----------------------------------------
   if (typeof func !== "function") {
     throw new TypeError("Expected a function for the first parameter");
@@ -56,17 +65,20 @@ export function modulate(
   const debounced = function executedFunction(...args) {
     return new Promise((resolve) => {
 
-      function execute(func, wait, callNow, lastExecuted) {
+      function execute(func = () => { }, wait = 0, callNow = false, lastExecuted = 0) {
+        // console.log('First parameter received: ', func);
+        // console.log('Second parameter received: ', wait);
+        // console.log('Third parameter received: ', callNow);
+        // console.log('Fourth parameter received: ', lastExecuted);
+
         const timeSinceLast = Date.now() - lastExecuted;
 
         if (typeof func !== 'function') {
           return Promise.reject(new Error('Expected a function for the first parameter'));
         }
-
         if (typeof wait !== 'number' || isNaN(wait) || wait <= 0) {
           return Promise.reject(new Error('Expected a number for the second parameter'));
         }
-
         if (typeof timeSinceLast !== 'number' || isNaN(timeSinceLast) || timeSinceLast < 0) {
           return Promise.reject(new Error('Invalid timeSinceLast value'));
         }
@@ -91,7 +103,9 @@ export function modulate(
       if (shouldExecute) {
         timeout = setTimeout(execute, timeSinceLast);
       } else {
-        timeout = setTimeout(execute, maxWait !== null ? maxWait : wait);
+        timeout = setTimeout(() => execute(func, wait, callNow, lastExecuted), maxWait !== null ? maxWait : wait);
+
+
       }
 
       // Check if we should execute the function immediately
@@ -118,6 +132,7 @@ export function modulate(
         canceled = false; // Reset the canceled flag
       });
   };
+
 
   debounced.cancel = function () {
     clearTimeout(timeout); // Clear the timeout
