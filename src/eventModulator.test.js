@@ -91,14 +91,14 @@ describe('testing modulate', () => {
             .toThrowError(TypeError);
     });
     
-    it("Should return a debounced function", () => {
+    it("should return a debounced function", () => {
       const originalFunc = (x, y) => x + y;
       const debouncedFunc = modulate(originalFunc, 1000);
       expect(debouncedFunc).toBeDefined();
       expect(typeof debouncedFunc).toBe("function");
     });
   
-    it("Should return the expected results", () => {
+    it("should return the expected results", () => {
       const originalFunc = (x, y) => x + y;
       const debouncedFunc = modulate(originalFunc, 1000);
       const promise1 = debouncedFunc(1, 2);
@@ -112,7 +112,7 @@ describe('testing modulate', () => {
       }, 2000);
     });
     
-    test('debounces the original function', () => {
+    test('should debounce the original function', () => {
       const originalFunc = jest.fn();
       const debouncedFunc = modulate(originalFunc, 1000);
   

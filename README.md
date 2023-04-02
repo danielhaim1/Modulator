@@ -184,23 +184,23 @@ const result3 = memoizedFunc(1);
 
 ```bash
  PASS  src/eventModulator.test.js
-  modulate
-    ✓ should delay execution by maxWait time (2 ms)
-    ✓ should cache results for the same arguments (1 ms)
-    ✓ should throw an error if the first parameter is not a function (2 ms)
+  testing modulate
+    ✓ should delay execution by maxWait time (1 ms)
+    ✓ should cache results for the same arguments
+    ✓ should throw an error if the first parameter is not a function (1 ms)
     ✓ should throw an error if the second parameter is not a number
-    ✓ should throw an error if the third parameter is not a boolean (1 ms)
+    ✓ should throw an error if the third parameter is not a boolean
     ✓ should throw an error if the fifth parameter is not a number
-    ✓ should throw an error if the sixth parameter is not a number or null (3 ms)
+    ✓ should throw an error if the sixth parameter is not a number or null (4 ms)
     ✓ should throw an error if the sixth parameter is less than the second parameter
-    ✓ Should return a debounced function
-    ✓ Should return the expected results
-    ✓ debounces the original function (1 ms)
+    ✓ should return a debounced function
+    ✓ should return the expected results
+    ✓ should debounce the original function
 
 Test Suites: 1 passed, 1 total
-Tests:       7 passed, 7 total
+Tests:       11 passed, 11 total
 Snapshots:   0 total
-Time:        0.143 s, estimated 6 s
+Time:        0.184 s, estimated 1 s
 ```
 
 ## Resources
