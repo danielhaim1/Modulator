@@ -12,10 +12,16 @@ By incorporating a cache system for debounced function call results, Event Modul
 
 <a target="_blank" href="https://danielhaim1.github.io/event-modulator/"><img src="dist/demo.png" width="100%" height="auto"></a>
 
+## Installation
+You can install this module via npm:
+
+```bash
+npm i @danielhaim/event-modulator
+```
+
 ## Usage
 
 The package can be imported and used in both Node.js and browser environments using the following syntax:
-
 
 ```js
 // CommonJS
@@ -85,13 +91,6 @@ The debounced function has two additional properties:
 
 - `debounced.cancel()`: a method that can be called to cancel the debounced function execution.
 - `debounced.result()`: a method that returns an array of the results of all executed invocations of the debounced function.
-
-## Installation
-You can install this module via npm:
-
-```bash
-npm i @danielhaim/event-modulator
-```
 
 ## Example
 
