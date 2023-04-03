@@ -14,15 +14,29 @@ By incorporating a cache system for debounced function call results, Event Modul
 
 ## Usage
 
-The function can be imported and used in a Node.js environment using the following syntax:
+The package can be imported and used in both Node.js and browser environments using the following syntax:
 
-```javascript
-const { modulate } = require('./path/to/eventModulator');
+
+```js
+// CommonJS
+const { modulate } = require('@danielhaim/event-modulator');
+const modulate = require("@danielhaim/event-modulator");
+
+// ECMAScript
+import modulate from "@danielhaim/event-modulator";
 ```
 
 Here's an example of how to use the modulate function:
 
-```javascript
+```js
+// Debounce the function to be called only once per 100ms
+const debouncedFunction = modulate(myFunction, 100);
+
+// Call the debounced function on high-frequency events
+element.addEventListener('mousemove', debouncedFunction);
+```
+
+```js
 const originalFunc = () => {
   console.log('Original function called');
 };

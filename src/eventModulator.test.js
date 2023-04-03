@@ -1,7 +1,5 @@
 import { modulate } from './eventModulator';
 
-
-
 const cache = new Map();
 function memoize(func) {
     // 1. Return a new function that takes any number of arguments
@@ -37,7 +35,6 @@ describe('testing modulate', () => {
                 .toHaveBeenCalledTimes(1);
         }, 2500);
     });
-    
     test("should cache results for the same arguments", () => {
         // 1. Define a test function that returns a different result each time
         const originalFunc = jest.fn(x => x + 1);
@@ -59,7 +56,6 @@ describe('testing modulate', () => {
         expect(result2)
             .toBe(result3);
     });
-    
     test("should throw an error if the first parameter is not a function", () => {
         expect(() => modulate(null, 500))
             .toThrowError(TypeError);
@@ -90,14 +86,12 @@ describe('testing modulate', () => {
         expect(() => modulate(() => { }, 500, true, null, 1000, 400))
             .toThrowError(TypeError);
     });
-    
     it("should return a debounced function", () => {
       const originalFunc = (x, y) => x + y;
       const debouncedFunc = modulate(originalFunc, 1000);
       expect(debouncedFunc).toBeDefined();
       expect(typeof debouncedFunc).toBe("function");
     });
-  
     it("should return the expected results", () => {
       const originalFunc = (x, y) => x + y;
       const debouncedFunc = modulate(originalFunc, 1000);
@@ -111,7 +105,6 @@ describe('testing modulate', () => {
         });
       }, 2000);
     });
-    
     test('should debounce the original function', () => {
       const originalFunc = jest.fn();
       const debouncedFunc = modulate(originalFunc, 1000);
@@ -126,5 +119,4 @@ describe('testing modulate', () => {
         expect(originalFunc).toHaveBeenCalledTimes(1);
       }, 2000);
     });
-  });
-  
+});

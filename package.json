@@ -14,33 +14,31 @@
         "type": "git",
         "url": "https://github.com/danielhaim1/event-modulator.git"
     },
-    "main": "dist/event.modulator.min.js",
+    "bugs": {
+        "url": "https://github.com/danielhaim1/event-modulator/issues"
+    },
+    "homepage": "https://github.com/danielhaim1/event-modulator",
+    "author": {
+        "name": "Daniel Haim",
+        "url": "https://github.com/danielhaim1"
+    },
+    "main": "src/eventModulator.js",
     "scripts": {
         "test": "jest",
         "build-docs": "cd docs && bundle install && bundle exec jekyll build",
         "build-package": "webpack --mode production && terser dist/event.modulator.js -o dist/event.modulator.min.js",
         "copy-package-to-docs": "cp -R dist/ docs/assets/js",
         "tree": "tree -I 'node_modules'",
-        "release": "npm version patch && npm run build-package && npm run copy-package-to-docs && git add package.json package-lock.json dist/ docs/assets/js && git commit -m 'Bump version and build package for release' && git push"
+        "release": "npm version patch && npm run build-package && npm run copy-package-to-docs && git diff-index --quiet HEAD -- && git add --force package.json package-lock.json dist/ docs/assets/js && git commit -m 'Bump version and build package for release' && git push"
     },
     "files": [
         "LICENSE",
         "README.md",
-        "package-lock.json",
         "package.json",
         "src/index.js",
         "src/eventModulator.js",
-        "dist/event.modulator.js",
-        "dist/event.modulator.min.js",
-        "dist/event.modulator.browser.js",
         "dist/demo.png",
-        "webpack.config.js",
-        "babel.config.js"
     ],
-    "author": {
-        "name": "Daniel Haim",
-        "url": "https://github.com/danielhaim1"
-    },
     "license": "MIT",
     "devDependencies": {
         "@babel/cli": "^7.21.0",

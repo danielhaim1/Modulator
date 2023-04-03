@@ -28,7 +28,6 @@ export function modulate(
   // console.log('Fifth parameter received: ', maxCacheSize);
   // console.log('Sixth parameter received: ', maxWait);
 
-
   // ---------------------------------------- Parameter Validation ----------------------------------------
   if (typeof func !== "function") {
     throw new TypeError("Expected a function for the first parameter");
@@ -36,7 +35,6 @@ export function modulate(
   if (typeof wait !== "number" || isNaN(wait)) {
     throw new TypeError("Expected a number for the second parameter");
   }
-  // Add validation for the wait argument
   if (typeof wait !== "number" || isNaN(wait)) {
     throw new TypeError("Expected a number for the second parameter (wait)");
   }
@@ -56,6 +54,7 @@ export function modulate(
   }
 
   // ---------------------------------------- Function Definition ----------------------------------------
+  
   let timeout; // Stores the timeout ID
   let results = []; // Stores the results of the original function
   let cache = new Map(); // Stores the cached results of the original function
@@ -66,6 +65,7 @@ export function modulate(
     return new Promise((resolve) => {
 
       function execute(func = () => { }, wait = 0, callNow = false, lastExecuted = 0) {
+
         // console.log('First parameter received: ', func);
         // console.log('Second parameter received: ', wait);
         // console.log('Third parameter received: ', callNow);
