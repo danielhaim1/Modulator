@@ -211,4 +211,5 @@ Time:        0.184 s, estimated 1 s
 
 ## Report Bugs
 
-If you encounter any bugs while using Modulator, please report them to the GitHub issue tracker. When submitting a bug report, please include as much information as possible.
+If you encounter any bugs while using Modulator, please report them to the GitHub issue tracker.
+When submitting a bug report, please include as much information as possible.
