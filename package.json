@@ -37,7 +37,7 @@
         "package.json",
         "src/index.js",
         "src/eventModulator.js",
-        "dist/demo.png",
+        "dist/demo.png"
     ],
     "license": "MIT",
     "devDependencies": {
