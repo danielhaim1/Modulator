@@ -10,7 +10,7 @@ By incorporating a cache system for debounced function call results, Event Modul
 
 ## Demo
 
-<a target="_blank" href="https://danielhaim1.github.io/event-modulator/"><img src="https://github.com/danielhaim1/event-modulator/raw/main/docs/demo.png" width="100%" height="auto"></a>
+<a target="_blank" href="https://danielhaim1.github.io/EventModulator/"><img src="https://github.com/danielhaim1/event-modulator/raw/main/docs/demo.png" width="100%" height="auto"></a>
 
 ## Table of Contents
 
