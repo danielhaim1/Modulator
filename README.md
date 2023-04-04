@@ -12,6 +12,31 @@ By incorporating a cache system for debounced function call results, Event Modul
 
 <a target="_blank" href="https://danielhaim1.github.io/event-modulator/"><img src="dist/demo.png" width="100%" height="auto"></a>
 
+## Table of Contents
+
+- [Event Modulator](#event-modulator)
+  * [Demo](#demo)
+  * [Table of Contents](#table-of-contents)
+  * [Installation](#installation)
+  * [Usage](#usage)
+  * [Usage in the Browser](#usage-in-the-browser)
+  * [Options](#options)
+  * [Methods](#methods)
+  * [Example](#example)
+    + [Debouncing a scroll event listener](#debouncing-a-scroll-event-listener)
+    + [Debouncing a resize event listener](#debouncing-a-resize-event-listener)
+    + [Debouncing a resize event listener with a maximum wait time](#debouncing-a-resize-event-listener-with-a-maximum-wait-time)
+    + [Debouncing a form submission](#debouncing-a-form-submission)
+    + [Debouncing a search function](#debouncing-a-search-function)
+    + [Debouncing a mouseover event listener](#debouncing-a-mouseover-event-listener)
+  * [Advanced](#advanced)
+    + [Debouncing a function with cache](#debouncing-a-function-with-cache)
+    + [maxCacheSize Parameter](#maxcachesize-parameter)
+    + [Caching results](#caching-results)
+  * [Tests](#tests)
+  * [Resources](#resources)
+  * [Report Bugs](#report-bugs)
+
 ## Installation
 You can install this module via npm:
 
@@ -119,7 +144,7 @@ setTimeout(() => {
 ```
 In the example above, the function `originalFunc` returns the sum of two numbers. The debounced function is called three times with the same arguments, but it will only execute once after the wait time of 1000ms has passed. The `result` method returns the result of the last execution of the debounced function, which is `[3]`.
 
-### Example: Debouncing a scroll event listener
+### Debouncing a scroll event listener
 
 ```js
 function handleScroll(event) {
@@ -131,7 +156,7 @@ const debouncedHandleScroll = modulate(handleScroll, 250);
 window.addEventListener('scroll', debouncedHandleScroll);
 ```
 
-### Example: Debouncing a resize event listener
+### Debouncing a resize event listener
 ```js
 function handleResize(event) {
   // do something on resize
@@ -142,7 +167,7 @@ const debouncedHandleResize = modulate(handleResize, 100, false, null, 10, 500);
 window.addEventListener('resize', debouncedHandleResize);
 ```
 
-### Example: Debouncing a resize event listener with a maximum wait time
+### Debouncing a resize event listener with a maximum wait time
 
 ```js
 function handleResize(event) {
@@ -154,7 +179,7 @@ const debouncedHandleResize = modulate(handleResize, 100, false, null, 10, 500);
 window.addEventListener('resize', debouncedHandleResize);
 ```
 
-### Example: Debouncing a form submission
+### Debouncing a form submission
 
 ```js
 function handleSubmit(event) {
@@ -167,7 +192,7 @@ const debouncedHandleSubmit = modulate(handleSubmit, 1000, true);
 document.querySelector('#my-form').addEventListener('submit', debouncedHandleSubmit);
 ```
 
-### Example: Debouncing a search function
+### Debouncing a search function
 ```js
 function handleSearch(query) {
   // make API request and display results
@@ -180,7 +205,7 @@ document.querySelector('#search-input').addEventListener('input', (event) => {
 });
 ```
 
-### Example: Debouncing a mouseover event listener
+### Debouncing a mouseover event listener
 ```js
 function handleMouseover(event) {
   // display tooltip or other information
@@ -193,7 +218,7 @@ document.querySelector('#my-element').addEventListener('mouseover', debouncedHan
 
 ## Advanced
 
-### Example: Debounced Function with Cache
+### Debouncing a function with cache
 
 Here's an example of creating a debounced version of a function `fetchData` with a cache size of 2. The debounced function `debouncedFetchData` is called multiple times with the same query ('apple' and 'banana'). Still, the original part is only invoked for the last two calls (one for 'apple' and one for 'banana'). After 1 second, the function is called again for 'apple' and 'banana,' and the results are retrieved from the cache instead of invoking the original function.
 
@@ -228,7 +253,7 @@ setTimeout(() => {
 
 The modulate function includes a `maxCacheSize` parameter that allows you to control the cache size of the debounced function. This parameter specifies the maximum number of function results that should be cached. Once the cache size is reached, the oldest result will be removed to accommodate the new result. If `maxCacheSize` is set to `null` or `undefined,` the cache will have unlimited size.
 
-### Caching Results
+### Caching results
 
 In this example, the `memoize` function creates a cached version of a function to return the same result for the same arguments, improving performance by avoiding unnecessary function calls.
 
@@ -267,25 +292,26 @@ const result3 = memoizedFunc(1);
 
 ## Tests
 
-```
- PASS  src/eventModulator.test.js
-  testing modulate
-    ✓ should delay execution by maxWait time (1 ms)
-    ✓ should cache results for the same arguments
-    ✓ should throw an error if the first parameter is not a function (1 ms)
-    ✓ should throw an error if the second parameter is not a number
-    ✓ should throw an error if the third parameter is not a boolean
-    ✓ should throw an error if the fifth parameter is not a number
-    ✓ should throw an error if the sixth parameter is not a number or null (4 ms)
-    ✓ should throw an error if the sixth parameter is less than the second parameter
-    ✓ should return a debounced function
-    ✓ should return the expected results
-    ✓ should debounce the original function
+```zsh
+Test Errors
+✓ Should throw an error if the first parameter is not a function
+✓ Should throw an error if the second parameter is not a number
+✓ Should throw an error if the third parameter is not a boolean
+✓ Should throw an error if the fifth parameter is not a number
+✓ Should throw an error if the sixth parameter is not a number or null
+✓ Should throw an error if the sixth parameter is less than the second parameter
 
-Test Suites: 1 passed, 1 total
-Tests:       11 passed, 11 total
-Snapshots:   0 total
-Time:        0.184 s, estimated 1 s
+Test Parameters
+✓ Should debounce the original function
+✓ Should delay execution by maxWait time
+✓ Should cache results for the same arguments
+✓ Should debounce a function and return a debounced function
+✓ Should debounce and cache the results of the original function
+
+Test EventListeners
+✓ Should trigger mouseover event
+✓ Should trigger window resize event
+
 ```
 
 ## Resources
