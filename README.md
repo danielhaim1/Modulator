@@ -119,6 +119,78 @@ setTimeout(() => {
 ```
 In the example above, the function `originalFunc` returns the sum of two numbers. The debounced function is called three times with the same arguments, but it will only execute once after the wait time of 1000ms has passed. The `result` method returns the result of the last execution of the debounced function, which is `[3]`.
 
+### Example: Debouncing a scroll event listener
+
+```js
+function handleScroll(event) {
+  // do something on scroll
+}
+
+const debouncedHandleScroll = modulate(handleScroll, 250);
+
+window.addEventListener('scroll', debouncedHandleScroll);
+```
+
+### Example: Debouncing a resize event listener
+```js
+function handleResize(event) {
+  // do something on resize
+}
+
+const debouncedHandleResize = modulate(handleResize, 100, false, null, 10, 500);
+
+window.addEventListener('resize', debouncedHandleResize);
+```
+
+### Example: Debouncing a resize event listener with a maximum wait time
+
+```js
+function handleResize(event) {
+  // do something on resize
+}
+
+const debouncedHandleResize = modulate(handleResize, 100, false, null, 10, 500);
+
+window.addEventListener('resize', debouncedHandleResize);
+```
+
+### Example: Debouncing a form submission
+
+```js
+function handleSubmit(event) {
+  event.preventDefault();
+  // make API request to submit form data
+}
+
+const debouncedHandleSubmit = modulate(handleSubmit, 1000, true);
+
+document.querySelector('#my-form').addEventListener('submit', debouncedHandleSubmit);
+```
+
+### Example: Debouncing a search function
+```js
+function handleSearch(query) {
+  // make API request and display results
+}
+
+const debouncedHandleSearch = modulate(handleSearch, 500);
+
+document.querySelector('#search-input').addEventListener('input', (event) => {
+  debouncedHandleSearch(event.target.value);
+});
+```
+
+### Example: Debouncing a mouseover event listener
+```js
+function handleMouseover(event) {
+  // display tooltip or other information
+}
+
+const debouncedHandleMouseover = modulate(handleMouseover, 250);
+
+document.querySelector('#my-element').addEventListener('mouseover', debouncedHandleMouseover);
+```
+
 ## Advanced
 
 ### Example: Debounced Function with Cache
