@@ -6,15 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="{{ page.description }}">
   <link rel="stylesheet" href="assets/css/style.css">
-</head>
 
+  <meta property="og:title" content="{{ page.title }}" />
+  <meta property="og:description" content="{{ page.description }}" />
+  <meta property="og:image" content="{{ '/assets/img/ico/favicon-512x512.png?' | prepend: site.baseurl | prepend: site.url | append: time }}" />
+  <meta property="og:url" content="{{ page.url | prepend: site.baseurl | prepend: site.url }}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="en_US" />
+
+  <meta name="twitter:title" content="{{ page.title }}" />
+  <meta name="twitter:description" content="{{ page.description }}" />
+  <meta name="twitter:url" content="{{ page.url | prepend: site.baseurl | prepend: site.url }}" />
+  <meta name="twitter:card" content="summary" />
+</head>
 <body>
   {{ content }}
-
-
   <script src="{{ site.baseurl }}/assets/js/event.modulator.browser.js"></script>
   <script>window.modulate = modulate;</script>
   <script src="assets/js/app.js"></script>
 </body>
-
 </html>
