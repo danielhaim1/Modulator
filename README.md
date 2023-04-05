@@ -2,7 +2,8 @@
 
 [![npm version](https://img.shields.io/npm/v/@danielhaim/event-modulator)](https://www.npmjs.com/package/@danielhaim/event-modulator)
 [![Downloads](https://img.shields.io/npm/dt/@danielhaim/event-modulator.svg)](https://www.npmjs.com/package/@danielhaim/event-modulator)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![GitHub](https://img.shields.io/github/license/danielhaim1/eventmodulator)
+
 
 Event Modulator is an advanced debouncing utility designed to optimize high-frequency events in web applications, such as scroll, resize, and input. This standalone solution surpasses other debouncing functions like Lodash and Underscore in terms of performance and flexibility. Key features include parameter validation, cache, and result storage, control over cache size, a maximum wait time, and a Promise-based return.
 
