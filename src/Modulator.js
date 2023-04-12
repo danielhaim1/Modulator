@@ -30,9 +30,7 @@ export function modulate(
    * console.log('Sixth parameter received: ', maxWait);
    */
 
-  /**
-   * ---------------------------------------- Parameter Validation ----------------------------------------
-   */
+  // Parameter Validation
   if (typeof func !== "function") {
     throw new TypeError("Expected a function for the first parameter");
   }
@@ -57,10 +55,7 @@ export function modulate(
     );
   }
 
-  /**
-   * ---------------------------------------- Function Definition ----------------------------------------
-   */
-  
+  // Function Definition
   let timeout; // Stores the timeout ID
   let results = []; // Stores the results of the original function
   let cache = new Map(); // Stores the cached results of the original function
@@ -110,8 +105,6 @@ export function modulate(
         timeout = setTimeout(execute, timeSinceLast);
       } else {
         timeout = setTimeout(() => execute(func, wait, callNow, lastExecuted), maxWait !== null ? maxWait : wait);
-
-
       }
 
       // Check if we should execute the function immediately
