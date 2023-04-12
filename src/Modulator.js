@@ -1,12 +1,12 @@
 /**
- * modulate - Debounces a function and caches its results
+ * modulate - Debounce a function and caches its results
  *
  * @param {function} func - The function to debounce
  * @param {number} wait - The debouncing wait time in milliseconds
  * @param {boolean} [immediate=false] - Flag to determine if the function should be executed immediately
  * @param {object} [context=null] - The context in which the function should be executed
  * @param {number} [maxCacheSize=100] - The maximum cache size
- * @param {number} [maxWait=null] - The maximum wait time in milliseconds
+ * @param {null} [maxWait=null] - The maximum wait time in milliseconds
  *
  * @returns {function} The debounced function
  */
@@ -20,15 +20,19 @@ export function modulate(
   maxWait = null
 ) {
 
-  // console.log('modulate called');
-  // console.log('First parameter received: ', func);
-  // console.log('Second parameter received: ', wait);
-  // console.log('Third parameter received: ', immediate);
-  // console.log('Fourth parameter received: ', context);
-  // console.log('Fifth parameter received: ', maxCacheSize);
-  // console.log('Sixth parameter received: ', maxWait);
+  /**
+   * console.log('modulate called');
+   * console.log('First parameter received: ', func);
+   * console.log('Second parameter received: ', wait);
+   * console.log('Third parameter received: ', immediate);
+   * console.log('Fourth parameter received: ', context);
+   * console.log('Fifth parameter received: ', maxCacheSize);
+   * console.log('Sixth parameter received: ', maxWait);
+   */
 
-  // ---------------------------------------- Parameter Validation ----------------------------------------
+  /**
+   * ---------------------------------------- Parameter Validation ----------------------------------------
+   */
   if (typeof func !== "function") {
     throw new TypeError("Expected a function for the first parameter");
   }
@@ -53,7 +57,9 @@ export function modulate(
     );
   }
 
-  // ---------------------------------------- Function Definition ----------------------------------------
+  /**
+   * ---------------------------------------- Function Definition ----------------------------------------
+   */
   
   let timeout; // Stores the timeout ID
   let results = []; // Stores the results of the original function
@@ -132,7 +138,6 @@ export function modulate(
         canceled = false; // Reset the canceled flag
       });
   };
-
 
   debounced.cancel = function () {
     clearTimeout(timeout); // Clear the timeout

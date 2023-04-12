@@ -37,7 +37,7 @@ html {
     padding: 0 1rem;
     box-sizing: border-box;
 
-    box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px,
+    box-shadow: rgba(0, 0, 0, 0.25) 0 54px 55px,
         rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px,
         rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
 }
@@ -97,7 +97,7 @@ html {
 .main-content {
     a.btn {
         position: relative;
-        box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+        box-shadow: rgba(100, 100, 111, 0.2) 0 7px 29px 0;
         border-radius: 0.65em;
         font-family: inherit;
         user-select: none;
@@ -200,7 +200,7 @@ html {
     height: 200px;
     border-radius: 0.65em;
     overflow: hidden;
-    box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px,
+    box-shadow: rgba(0, 0, 0, 0.25) 0 54px 55px,
         rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px,
         rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
 
@@ -287,7 +287,7 @@ html {
         height: 50px;
         user-select: none;
         cursor: pointer;
-        padding: 0 0rem;
+        padding: 0 0;
         margin: 0;
     }
 
@@ -315,7 +315,7 @@ html {
             transition-property: transform;
             transition-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
             border-radius: 50%;
-            box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px,
+            box-shadow: rgba(0, 0, 0, 0.25) 0 54px 55px,
                 rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px,
                 rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
         }

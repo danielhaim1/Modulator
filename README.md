@@ -11,7 +11,7 @@ By incorporating a cache system for debounced function call results, Event Modul
 
 ## Demo
 
-<a target="_blank" href="https://danielhaim1.github.io/EventModulator/"><img src="https://github.com/danielhaim1/event-modulator/raw/main/docs/demo.png" width="100%" height="auto"></a>
+<a target="_blank" href="https://danielhaim1.github.io/EventModulator/"><img src="https://raw.githubusercontent.com/danielhaim1/EventModulator/main/docs/assets/demo.png" width="100%" height="auto" alt="EventModulator Demo"></a>
 
 ## Table of Contents
 
@@ -50,11 +50,6 @@ $ npm i @danielhaim/event-modulator
 The package can be imported and used in both Node.js and browser environments using the following syntax:
 
 ```js
-// CommonJS
-const { modulate } = require('@danielhaim/event-modulator');
-const modulate = require("@danielhaim/event-modulator");
-
-// ECMAScript
 import modulate from "@danielhaim/event-modulator";
 ```
 
@@ -87,10 +82,10 @@ In the example above, `debouncedFunc` is a debounced version of `originalFunc`. 
 
 ## Usage in the Browser
 
-The function can also be used in a browser environment by including the `event.modulator.browser.js` script in your HTML file:
+The function can also be used in a browser environment by including the `modulator.amd.js` script in your HTML file:
 
 ```html
-<script src="./path/to/event.modulator.browser.js"></script>
+<script src="./path/to/modulator.amd.js"></script>
 <script>window.modulate = modulate;</script>
 ```
 
