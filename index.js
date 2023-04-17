@@ -9,3 +9,4 @@ if ( typeof module === 'object' && module.exports ) {
 if ( typeof window === 'object' ) {
 	window.modulate = modulate;
 }
+
