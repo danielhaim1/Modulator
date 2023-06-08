@@ -1,6 +1,6 @@
 {
   "name": "@danielhaim/event-modulator",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "An advanced debouncing for high-frequency events",
   "keywords": [
     "debounce",
