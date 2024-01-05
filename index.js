@@ -1,11 +1,11 @@
 import { modulate } from './src/Modulator.js';
 
-// If the module is being used in a Node environment
+// Export for Node.js environment
 if ( typeof module === 'object' && module.exports ) {
 	module.exports = { modulate };
 }
 
-// If the module is being used in a web environment
+// Export for web environment
 if ( typeof window === 'object' ) {
 	window.modulate = modulate;
 }
