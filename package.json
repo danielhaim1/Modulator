@@ -1,6 +1,6 @@
 {
   "name": "@danielhaim/modulator",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "An advanced debouncing utility designed to optimize high-frequency events in web applications, such as scroll, resize, and input.",
   "keywords": [
     "debounce",
@@ -34,7 +34,7 @@
     "package.json"
   ],
   "scripts": {
-  "generate-docs": "jsdoc -c jsdoc.json",
+    "generate-docs": "jsdoc -c jsdoc.json",
     "dev": "webpack --mode development --watch",
     "build": "npx webpack --mode production && cp -R dist/ docs/assets/js",
     "build-docs": "cd docs && bundle install && bundle exec jekyll build",
