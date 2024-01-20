@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { modulate } from '../index.js';
+import { modulator } from '../index.js';
 
 const cache = new Map ();
 

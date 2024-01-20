@@ -1,14 +1,30 @@
 /**
- * modulate - Debounce a function and caches its results
+ * Creates a debounced function with a configurable cache and maximum wait time. 
+ * The debounced function delays invoking `func` until after `wait` milliseconds 
+ * have elapsed since the last time the debounced function was invoked. 
+ * The function also caches its results based on the arguments passed.
+ * If `immediate` is true, it triggers the function on the leading edge, instead of the trailing.
+ * 
+ * @param {Function} func - The function to debounce.
+ * @param {number} wait - The debouncing wait time in milliseconds.
+ * @param {boolean} [immediate=false] - Flag to determine if the function should be executed immediately.
+ * @param {Object} [context=null] - The context in which the function should be executed.
+ * @param {number} [maxCacheSize=100] - The maximum cache size for storing results.
+ * @param {number|null} [maxWait=null] - The maximum wait time in milliseconds that the function can be delayed.
+ * 
+ * @returns {Function} A new debounced function.
  *
- * @param {function} func - The function to debounce
- * @param {number} wait - The debouncing wait time in milliseconds
- * @param {boolean} [immediate=false] - Flag to determine if the function should be executed immediately
- * @param {object} [context=null] - The context in which the function should be executed
- * @param {number} [maxCacheSize=100] - The maximum cache size
- * @param {null} [maxWait=null] - The maximum wait time in milliseconds
- *
- * @returns {function} The debounced function
+ * @example
+ * // Define a function to be debounced
+ * function myFunction() {
+ *     console.log('Function executed!');
+ * }
+ * 
+ * // Create a debounced version of the function
+ * const debouncedFunction = modulate(myFunction, 200, false);
+ * 
+ * // Call the debounced function
+ * debouncedFunction();
  */
 
 export function modulate(
