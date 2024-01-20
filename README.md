@@ -1,8 +1,8 @@
 <!-- TOC --><a name="event-modulator"></a>
 # Modulator
 
-[![npm version](https://img.shields.io/npm/v/@danielhaim/event-modulator)](https://www.npmjs.com/package/@danielhaim/event-modulator)
-[![Downloads](https://img.shields.io/npm/dt/@danielhaim/event-modulator.svg)](https://www.npmjs.com/package/@danielhaim/event-modulator)
+[![npm version](https://img.shields.io/npm/v/@danielhaim/modulator)](https://www.npmjs.com/package/@danielhaim/modulator)
+[![Downloads](https://img.shields.io/npm/dt/@danielhaim/modulator.svg)](https://www.npmjs.com/package/@danielhaim/modulator)
 ![GitHub](https://img.shields.io/github/license/danielhaim1/eventmodulator)
 
 Event Modulator is an advanced debouncing utility designed to optimize high-frequency events in web applications, such as scroll, resize, and input. This standalone solution surpasses other debouncing functions like Lodash and Underscore in terms of performance and flexibility. Key features include parameter validation, cache, and result storage, control over cache size, a maximum wait time, and a Promise-based return.
@@ -47,7 +47,7 @@ By incorporating a cache system for debounced function call results, Event Modul
 You can install this module via npm:
 
 ```bash
-$ npm i @danielhaim/event-modulator
+$ npm i @danielhaim/modulator
 ```
 
 <!-- TOC --><a name="cdn"></a>
@@ -56,7 +56,7 @@ $ npm i @danielhaim/event-modulator
 If you prefer to use Event Modulator directly in your browser without installing the package, you can import it via a CDN like esm.sh. Simply add the following line to your HTML file or JavaScript module to start using it:
 
 ```js
-import modulator from "https://esm.sh/@danielhaim/event-modulator";
+import { modulate } from "https://esm.sh/@danielhaim/modulator";
 ```
 
 <!-- TOC --><a name="methods"></a>
