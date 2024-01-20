@@ -48,6 +48,7 @@ html {
     height: 70px;
     width: 100%;
     box-sizing: border-box;
+    z-index: 10;
 }
 
 .header-container a {
@@ -74,6 +75,7 @@ html {
     transform: translate(-50%, -50%);
     text-align: center;
     grid-gap: 1rem;
+    z-index: -1;
 }
 .main-content .filter {
     mix-blend-mode: color-burn;
