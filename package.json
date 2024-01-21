@@ -1,5 +1,5 @@
 {
-  "name": "@danielhaim/event-modulator",
+  "name": "@danielhaim/modulator",
   "version": "1.0.23",
   "description": "An advanced debouncing utility designed to optimize high-frequency events in web applications, such as scroll, resize, and input.",
   "keywords": [
@@ -12,13 +12,13 @@
     "utility",
     "helper"
   ],
-  "homepage": "https://github.com/danielhaim1/event-modulator/#readme",
+  "homepage": "https://github.com/danielhaim1/modulator/#readme",
   "bugs": {
-    "url": "https://github.com/danielhaim1/event-modulator/issues"
+    "url": "https://github.com/danielhaim1/modulator/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/danielhaim1/event-modulator.git"
+    "url": "https://github.com/danielhaim1/modulator.git"
   },
   "license": "Apache-2.0",
   "author": {

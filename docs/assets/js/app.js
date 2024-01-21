@@ -258,13 +258,13 @@ toggleSwitch.addEventListener ( "change", ( event ) => {
 		window.addEventListener ( "scroll", modulatedScrollListener );
 		// window.addEventListener("click", modulatedClickListener);
 		srHidden.textContent = "Modulator On";
-		logEvent ( `Event Modulator On`, 0, null, "announce" );
+		logEvent ( `Modulator On`, 0, null, "announce" );
 	} else {
 		window.addEventListener ( "resize", resizeListener );
 		window.addEventListener ( "scroll", scrollListener );
 		// window.addEventListener("click", clickListener);
 		srHidden.textContent = "Modulator Off";
-		logEvent ( `Event Modulator Off`, 0, null, "announce" );
+		logEvent ( `Modulator Off`, 0, null, "announce" );
 	}
 } );
 

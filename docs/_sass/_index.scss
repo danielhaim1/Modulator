@@ -1,3 +1,1332 @@
+@use 'sass:math';
+
+
+$ratios: null;
+$base: 16;
+$scale: "minor-third";
+
+$breakpoints: (
+  xs:  ( "max": 544 ),                      // Extra Small devices (e.g., smaller phones)
+  sm:  ( "min": 544,  "max": 768 ),     // Small devices (e.g., larger phones, tablets)
+  md:  ( "min": 768,  "max": 1024 ),    // Medium devices (e.g., tablets, small laptops)
+  lg:  ( "min": 1024, "max": 1366 ),    // Large devices (e.g., laptops, smaller desktops)
+  xl:  ( "min": 1366 )                  // Extra Large devices (e.g., large desktops)
+);
+
+// Function: Custom Power Calculation
+// Description: Calculates the power of a number to a given exponent.
+@function pow($number, $exponent) {
+  $result: 1;
+  @if $exponent > 0 {
+    @for $i from 1 through $exponent {
+      $result: $result * $number;
+    }
+  } @else {
+    @for $i from 1 through abs($exponent) {
+      $result: $result / $number;
+    }
+  }
+  @return $result;
+}
+
+// Function: Generate Scale
+// Description: Generates a typographic scale based on a given ratio.
+@function generate-scale($ratio, $length: 10) {
+  $scale: ();
+  $startValue: 1 / pow($ratio, 2);
+
+  $currentValue: $startValue;
+  @for $i from 1 through $length {
+    $formattedValue: number-format($currentValue, 3);
+    $scale: append($scale, $formattedValue);
+    $currentValue: $currentValue * $ratio;
+  }
+
+  @return $scale;
+}
+
+// Function: Number Formatting
+// Description: Formats a number to a fixed number of decimal places.
+@function number-format($number, $decimals: 2) {
+  $n: $number * pow(10, $decimals);
+  $n: round($n) / pow(10, $decimals);
+  @return $n;
+}
+
+// Mixin: Create Ratios
+// Description: Creates a map of typographic scales for different ratios.
+@mixin create-ratios() {
+  $ratios: (
+    "minor-second": generate-scale(1.067),
+    "major-second": generate-scale(1.125),
+    "minor-third": generate-scale(1.2),
+    "major-third": generate-scale(1.25),
+    "perfect-fourth": generate-scale(1.333)
+  ) !global;
+}
+
+// Initialize the $ratios map
+@include create-ratios();
+
+// Variables for scale and scale values
+$scale-values: map-get($ratios, $scale);
+
+// Function: Adjust Max
+// Description: Adjusts the maximum value by a small factor.
+@function adjust-max($max) {
+  @return $max - 0.02;
+}
+
+// Mixin: Media Query
+// Description: Generates media queries based on breakpoints.
+@mixin mq($breakpoint1, $breakpoint2-or-type: "min", $type: null) {
+  // Example @include mq(.., ..) ['sm, md' || 'sm, "min"' || 'md, "only"']
+
+  $breakpoints-keys: map-keys($breakpoints);
+  $is-second-arg-breakpoint: index($breakpoints-keys, $breakpoint2-or-type) !=
+    null;
+
+  @if $is-second-arg-breakpoint {
+    // Handling 'between' two breakpoints
+    $min: map-get(map-get($breakpoints, $breakpoint1), "min");
+    $max: map-get(map-get($breakpoints, $breakpoint2-or-type), "max");
+    $last-key: nth($breakpoints-keys, length($breakpoints-keys));
+
+    // Check if the second breakpoint is the last key and lacks a 'max' value
+    @if $breakpoint2-or-type == $last-key && $max == null {
+      $adjustedMin: adjust-max(
+        map-get(map-get($breakpoints, $breakpoint2-or-type), "min")
+      );
+      @media (min-width: #{$min}px) and (max-width: #{$adjustedMin}px) {
+        @content;
+      }
+    } @else {
+      $adjustedMax: if($max != null, adjust-max($max), null);
+      @if $min != null && $max != null {
+        @media (min-width: #{$min}px) and (max-width: #{$adjustedMax}px) {
+          @content;
+        }
+      } @else {
+        @error "Invalid breakpoints for 'between' type. Ensure both breakpoints have valid min and max values.";
+      }
+    }
+  } @else {
+    $first-key: nth($breakpoints-keys, 1);
+    $last-key: nth($breakpoints-keys, length($breakpoints-keys));
+
+    $min: map-get(map-get($breakpoints, $breakpoint1), "min");
+    $max: map-get(map-get($breakpoints, $breakpoint1), "max");
+
+    $type: $breakpoint2-or-type;
+
+    @if $type == "only" {
+      @if $breakpoint1 == $first-key {
+        @media (max-width: #{$max}px) {
+          @content;
+        }
+      } @else if $breakpoint1 == $last-key {
+        @media (min-width: #{$min}px) {
+          @content;
+        }
+      } @else {
+        $adjustedMax: if($max != null, adjust-max($max), null);
+        @media (min-width: #{$min}px) and (max-width: #{$adjustedMax}px) {
+          @content;
+        }
+      }
+    } @else if $type == "min" {
+      @if $breakpoint1 == $first-key {
+        @error "Breakpoint '#{$breakpoint1}' does not have a valid min width.";
+      } @else {
+        @media (min-width: #{$min}px) {
+          @content;
+        }
+      }
+    } @else if $type == "max" {
+      @if $breakpoint1 == $last-key {
+        $adjustedMax: if($min != null, adjust-max($min), null);
+        @media (max-width: #{$adjustedMax}px) {
+          @content;
+        }
+      } @else {
+        $adjustedMax: if($max != null, adjust-max($max), null);
+        @media (max-width: #{$adjustedMax}px) {
+          @content;
+        }
+      }
+    } @else {
+      @error "Invalid type '#{$type}'. Use 'min', 'max', or 'only'.";
+    }
+  }
+}
+
+// Function: Strip Unit
+// Description: Removes the unit from a value, returning a pure number.
+@function strip-unit($value) {
+  @if $value == null {
+    @return 0;
+  } @else {
+    @return $value / ($value * 0 + 1);
+  }
+}
+
+// Function: Round to Decimals
+// Description: Rounds a number to the specified number of decimal places.
+@function round-to-decimals($number, $decimals) {
+  $n: 1;
+  @if $decimals == 2 {
+    $n: 100;
+  }
+
+  @return round($number * $n) / $n;
+}
+
+// Mixin: Responsive Viewport
+// Description: Adjusts viewport-based variables for responsive design.
+@mixin responsive-viewport($size) {
+  $min: if(
+    map-has-key(map-get($breakpoints, $size), "min"),
+    map-get(map-get($breakpoints, $size), "min"),
+    null
+  );
+  $max: if(
+    map-has-key(map-get($breakpoints, $size), "max"),
+    map-get(map-get($breakpoints, $size), "max"),
+    null
+  );
+
+  $base-value: if(
+    $size == "xs",
+    14,
+    if($size == "sm", 16, if($size == "md", 16, if($size == "lg", 17, 18)))
+  );
+  $media-query: null;
+
+  // Construct the media query based on $min and $max
+  @if $min != null and $max != null {
+    $media-query: "(min-width: #{$min}px) and (max-width: #{$max}px)";
+  } @else if $min != null {
+    $media-query: "(min-width: #{$min}px)";
+  } @else if $max != null {
+    $media-query: "(max-width: #{$max}px)";
+  }
+
+  @if $media-query {
+    @media #{$media-query} {
+      :root {
+        --viewportBase: #{if(
+            $size == "xl",
+            $min,
+            if($size == "xs", $max, $max)
+          )};
+        --base: #{$base-value};
+        --bpx: #{$base-value}px;
+
+        @for $i from 1 through 10 {
+          $value: nth($scale-values, $i) * $base-value;
+          --abs#{$i}: #{round-to-decimals($value, 2)};
+        }
+        @for $i from 1 through 10 {
+          $value: nth($scale-values, $i) * $base-value;
+          --px#{$i}: #{round-to-decimals($value, 2)}px;
+        }
+      }
+         
+        //  @each $scale-name, $abbreviation in $abbreviations {
+        //   $scale-values: map-get($ratios, $scale-name);
+        //   [data-scale="#{$scale-name}"] {
+        //   // Generate variables for each value in the scale
+        //   @if $scale-values != null {
+        //      @for $i from 1 through length($scale-values) {
+        //        $value: nth($scale-values, $i);
+        //          --abs#{$i}: #{round-to-decimals($value, 2)};
+        //          --px#{$i}: #{round-to-decimals($value, 2)}px;
+        //      }
+        //   }
+        //   }
+        // }         
+    }
+  }
+}
+
+$abbreviations: (
+  "major-second": "mj2",
+  "minor-second": "mn2",
+  "major-third": "mj3",
+  "minor-third": "mn3",
+  "perfect-fourth": "pf"
+);
+
+:root {
+ $selected-scale-values: map-get($ratios, $scale);
+  @if $selected-scale-values != null {
+    @for $i from 1 through length($selected-scale-values) {
+     $value: nth($selected-scale-values, $i);
+      --em#{$i}: #{$value}em;
+      --rem#{$i}: #{$value}rem;
+      --sca#{$i}: #{$value};
+    }
+  }
+}
+
+@each $scale-name, $abbreviation in $abbreviations {
+  $scale-values: map-get($ratios, $scale-name);
+  // [data-scale="#{$scale-name}"] {
+    :root {
+    // Generate variables for each value in the scale
+    @if $scale-values != null {
+      @for $i from 1 through length($scale-values) {
+          $value: nth($scale-values, $i);
+            $absValue: nth($scale-values, $i) * 16;
+            --#{$abbreviation}-em#{$i}: #{$value}em;
+            --#{$abbreviation}-rem#{$i}: #{$value}rem;
+            --#{$abbreviation}-sca#{$i}: #{$value};
+            --#{$abbreviation}-abs#{$i}: #{round-to-decimals($absValue, 2)};
+            --#{$abbreviation}-px#{$i}: #{round-to-decimals($absValue, 2)}px;
+      }
+    }
+  }
+}
+
+
+@include responsive-viewport("xs");
+@include responsive-viewport("sm");
+@include responsive-viewport("md");
+@include responsive-viewport("lg");
+@include responsive-viewport("xl");
+
+@include responsive-viewport(xs);
+@include responsive-viewport(sm);
+@include responsive-viewport(md);
+@include responsive-viewport(lg);
+@include responsive-viewport(xl);
+
+:root {
+    --flu1: calc(var(--abs1) / var(--viewportBase) * 100vw);
+    --flu2: calc(var(--abs2) / var(--viewportBase) * 100vw);
+    --flu3: calc(var(--abs3) / var(--viewportBase) * 100vw);
+    --flu4: calc(var(--abs4) / var(--viewportBase) * 100vw);
+    --flu5: calc(var(--abs5) / var(--viewportBase) * 100vw);
+    --flu6: calc(var(--abs6) / var(--viewportBase) * 100vw);
+    --flu7: calc(var(--abs7) / var(--viewportBase) * 100vw);
+    --flu8: calc(var(--abs8) / var(--viewportBase) * 100vw);
+    --flu9: calc(var(--abs9) / var(--viewportBase) * 100vw);
+    --flu10: calc(var(--abs10) / var(--viewportBase) * 100vw);
+
+    --body-ff: "webfont", -apple-system, BlinkMacSystemFont, avenir next, avenir,
+    segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial,
+    sans-serif;
+    --heading-ff: var(--body-ff);
+
+    --body-fs: var(--bpx);
+    --body-fw: 400;
+    --body-lh: var(--sca5);
+
+    --h0c: clamp(var(--rem7), var(--flu9), var(--rem10));
+    --h1c: clamp(var(--rem6), var(--flu8), var(--rem8));
+    --h2c: clamp(var(--rem5), var(--flu7), var(--rem7));
+    --h3c: clamp(var(--rem4), var(--flu6), var(--rem6));
+    --h4c: clamp(var(--rem3), var(--flu5), var(--rem5));
+    --h5c: clamp(var(--rem3), var(--flu4), var(--rem4));
+    --h6c: clamp(var(--rem2), var(--flu3), var(--rem3));
+    --pc: clamp(16px, var(--flu2), var(--rem4));
+
+    --type-h0: 700 var(--rem9) / var(--sca3) var(--heading-ff);
+    --type-h1: 700 var(--rem8) / var(--sca3) var(--heading-ff);
+    --type-h2: 600 var(--rem7) / var(--sca3) var(--heading-ff);
+    --type-h3: 500 var(--rem6) / var(--sca3) var(--heading-ff);
+    --type-h4: 500 var(--rem5) / var(--sca5) var(--heading-ff);
+    --type-h5: 500 var(--rem4) / var(--sca4) var(--heading-ff);
+    --type-h6: 500 var(--rem3) / var(--sca4) var(--heading-ff);
+
+    --type-p: 400 16px / var(--sca4) var(--body-ff);
+    --type-p-lg: 400 var(--rem4) / var(--sca5) var(--body-ff);
+    --type-p-sm: 400 var(--rem2) / var(--sca5) var(--body-ff);
+
+    --type-h0f: 700 var(--h0c) / var(--sca3) var(--heading-ff);
+    --type-h1f: 700 var(--h1c) / var(--sca3) var(--heading-ff);
+    --type-h2f: 600 var(--h2c) / var(--sca3) var(--heading-ff);
+    --type-h3f: 500 var(--h3c) / var(--sca3) var(--heading-ff);
+    --type-h4f: 500 var(--h4c) / var(--sca3) var(--heading-ff);
+    --type-h5f: 500 var(--h5c) / var(--sca3) var(--heading-ff);
+    --type-h6f: 500 var(--h6c) / var(--sca3) var(--heading-ff);
+    --type-pf: 400 var(--pc) / var(--sca5) var(--heading-ff);
+
+    --type-body: 400 var(--rem3)/var(--sca5) var(--body-ff);
+    --type-p-sm: 400 var(--rem3)/var(--sca5) var(--body-ff);
+    --type-p: 400 var(--rem3)/var(--sca5) var(--body-ff);
+    --type-p-lg: 400 var(--rem4)/var(--sca5) var(--body-ff);
+
+    --type-caption1: 500 var(--px2) / var(--sca4) var(--body-ff);
+    --type-caption2: 600 var(--px2) / var(--sca4) var(--body-ff);
+    --type-footnote: 400 var(--px2) / var(--sca4) var(--body-ff);
+
+    --gutter: var(--flu4);
+    --gutter-x: var(--flu4);
+    --gutter-y: 0;
+}
+
+.h0 { font: var(--type-h0); }
+.h0, .h0f { letter-spacing: -0.02em; }
+.h1, .h1f, h1 {
+    font: var(--type-h1);
+    letter-spacing: -0.02em;
+}
+.h2, .h2f, h2 {
+    font: var(--type-h2);
+    letter-spacing: -0.01em;
+}
+.h3, .h3f, h3 {
+    font: var(--type-h3);
+    letter-spacing: -0.01em;
+}
+.h4, .h4f, h4 {
+    font: var(--type-h4);
+    letter-spacing: -0.5px;
+}
+.h5, .h5f, h5 { font: var(--type-h5) }
+.h6, .h6f, h6 { font: var(--type-h6) }
+
+.h0f { font: var(--type-h0f) !important; -webkit-font-smoothing: initial; }
+.h1f { font: var(--type-h1f) !important; -webkit-font-smoothing: initial; }
+.h2f { font: var(--type-h2f) !important; }
+.h3f { font: var(--type-h3f) !important; }
+.h4f { font: var(--type-h4f) !important; -webkit-font-smoothing: initial; }
+.h5f { font: var(--type-h5f) !important;  }
+.h6f { font: var(--type-h6f) !important; }
+
+.type-caption1 {
+    font: var(--type-caption1);
+    color: var(--color-grey-500);
+    -webkit-font-smoothing: initial;
+}
+.type-caption2 {
+    font: var(--type-caption2);
+    color: var(--color-grey-700);
+    -webkit-font-smoothing: initial;
+}
+.type-footnote {
+    font: var(--type-footnote);
+    -webkit-font-smoothing: initial;
+}
+
+.type-pf { font: var(--type-pf); }
+.type-p {
+    font: var(--type-p);
+    -webkit-font-smoothing: initial;
+    margin-bottom: 1em;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.type-p-sm { font: var(--type-p-sm) }
+.type-p-lg { font: var(--type-p-lg) }
+
+p {
+    text-wrap: pretty;
+}
+
+// p, blockquote, table, ul, ol {
+//  &:not(:first-child) { margin-top: var(--rem4); }
+//  &:not(:last-child) { margin-bottom: var(--rem4); }
+
+//  &:first-child { margin-top: 0; }
+//  &:last-child { margin-bottom: 0; }
+// }
+
+// .h0f, .h1f, .h2f,
+// .h3f, .h4f, .h5f, .h6f,
+// h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+//  &:not(:first-child) { margin-top: var(--em7); }
+//  &:not(:last-child) { margin-bottom: var(--em4); }
+
+//  &:first-child { margin-top: 0; }
+//  &:last-child { margin-bottom: 0; }
+// }
+
+
+[data-scale="minor-second"] { 
+    --h0c: clamp(var(--mn2-rem10), var(--flu10), var(--mn2-rem10));
+    --h1c: clamp(var(--mn2-rem6), var(--flu8), var(--mn2-rem8));
+    --h2c: clamp(var(--mn2-rem5), var(--flu7), var(--mn2-rem7));
+    --h3c: clamp(var(--mn2-rem4), var(--flu6), var(--mn2-rem6));
+    --h4c: clamp(var(--mn2-rem3), var(--flu5), var(--mn2-rem5));
+    --h5c: clamp(var(--mn2-rem3), var(--flu4), var(--mn2-rem4));
+    --h6c: clamp(var(--mn2-rem2), var(--flu3), var(--mn2-rem3));
+    --pc: clamp(16px, var(--flu3), var(--mn2-rem4));
+
+    --type-h0f: 700 var(--h0c) / var(--mn2-sca3) var(--heading-ff);
+    --type-h1f: 700 var(--h1c) / var(--mn2-sca3) var(--heading-ff);
+    --type-h2f: 600 var(--h2c) / var(--mn2-sca3) var(--heading-ff);
+    --type-h3f: 500 var(--h3c) / var(--mn2-sca3) var(--heading-ff);
+    --type-h4f: 500 var(--h4c) / var(--mn2-sca3) var(--heading-ff);
+    --type-h5f: 500 var(--h5c) / var(--mn2-sca3) var(--heading-ff);
+    --type-h6f: 500 var(--h6c) / var(--mn2-sca3) var(--heading-ff);
+
+    --type-h0: 700 var(--mn2-rem9) / var(--mn2-sca3) var(--heading-ff);
+    --type-h1: 700 var(--mn2-rem8) / var(--mn2-sca3) var(--heading-ff);
+    --type-h2: 600 var(--mn2-rem7) / var(--mn2-sca3) var(--heading-ff);
+    --type-h3: 500 var(--mn2-rem6) / var(--mn2-sca3) var(--heading-ff);
+    --type-h4: 500 var(--mn2-rem5) / var(--mn2-sca5) var(--heading-ff);
+    --type-h5: 500 var(--mn2-rem4) / var(--mn2-sca4) var(--heading-ff);
+    --type-h6: 500 var(--mn2-rem3) / var(--mn2-sca4) var(--heading-ff);
+
+    --type-body: 400 var(--mn2-rem3)/var(--mn2-sca6) var(--body-ff);
+
+    --type-p-sm: 400 var(--mn2-rem3)/var(--mn2-sca6) var(--body-ff);
+    --type-p: 400 var(--mn2-rem3)/var(--mn2-sca6) var(--body-ff);
+    --type-p-lg: 400 var(--mn2-rem4)/var(--mn2-sca6) var(--body-ff);
+
+    --type-p: 400 var(--mn2-rem3) / var(--sca5) var(--body-ff);
+    --type-p-lg: 400 var(--mn2-rem4) / var(--sca5) var(--body-ff);
+    --type-p-sm: 400 var(--mn2-rem2) / var(--sca5) var(--body-ff);
+    
+    table, p, blockquote, table, ul, ol {
+        font-size: var(--type-p);
+    }
+}
+[data-scale="major-second"] { 
+    --h0c: clamp(var(--mj2-rem10), var(--flu10), var(--mj2-rem10));
+    --h1c: clamp(var(--mj2-rem6), var(--flu8), var(--mj2-rem8));
+    --h2c: clamp(var(--mj2-rem5), var(--flu7), var(--mj2-rem7));
+    --h3c: clamp(var(--mj2-rem4), var(--flu6), var(--mj2-rem6));
+    --h4c: clamp(var(--mj2-rem3), var(--flu5), var(--mj2-rem5));
+    --h5c: clamp(var(--mj2-rem3), var(--flu4), var(--mj2-rem4));
+    --h6c: clamp(var(--mj2-rem2), var(--flu3), var(--mj2-rem3));
+    --pc: clamp(16px, var(--flu3), var(--mj2-rem4));
+
+    --type-h0f: 700 var(--h0c) / var(--mj2-sca3) var(--heading-ff);
+    --type-h1f: 700 var(--h1c) / var(--mj2-sca3) var(--heading-ff);
+    --type-h2f: 600 var(--h2c) / var(--mj2-sca3) var(--heading-ff);
+    --type-h3f: 500 var(--h3c) / var(--mj2-sca3) var(--heading-ff);
+    --type-h4f: 500 var(--h4c) / var(--mj2-sca3) var(--heading-ff);
+    --type-h5f: 500 var(--h5c) / var(--mj2-sca3) var(--heading-ff);
+    --type-h6f: 500 var(--h6c) / var(--mj2-sca3) var(--heading-ff);
+
+    --type-h0: 700 var(--mj2-rem9) / var(--mj2-sca3) var(--heading-ff);
+    --type-h1: 700 var(--mj2-rem8) / var(--mj2-sca3) var(--heading-ff);
+    --type-h2: 600 var(--mj2-rem7) / var(--mj2-sca3) var(--heading-ff);
+    --type-h3: 500 var(--mj2-rem6) / var(--mj2-sca3) var(--heading-ff);
+    --type-h4: 500 var(--mj2-rem5) / var(--mj2-sca5) var(--heading-ff);
+    --type-h5: 500 var(--mj2-rem4) / var(--mj2-sca4) var(--heading-ff);
+    --type-h6: 500 var(--mj2-rem3) / var(--mj2-sca4) var(--heading-ff);
+
+    --type-body: 400 var(--mj2-rem3)/var(--mj2-sca5) var(--body-ff);
+    --type-p-sm: 400 var(--mj2-rem3)/var(--mj2-sca5) var(--body-ff);
+    --type-p: 400 var(--mj2-rem3)/var(--mj2-sca5) var(--body-ff);
+    --type-p-lg: 400 var(--mj2-rem4)/var(--mj2-sca5) var(--body-ff);
+
+    --type-p: 400 var(--mj2-rem3) / var(--mj2-sca5) var(--body-ff);
+    --type-p-lg: 400 var(--mj2-rem4) / var(--mj2-sca5) var(--body-ff);
+    --type-p-sm: 400 var(--mj2-rem2) / var(--mj2-sca5) var(--body-ff);
+    
+    table, p, blockquote, table, ul, ol {
+        font-size: var(--type-p);
+    }
+}
+[data-scale="minor-third"] { 
+    --h0c: clamp(var(--mn3-rem10), var(--flu10), var(--mn3-rem10));
+    --h1c: clamp(var(--mn3-rem6), var(--flu8), var(--mn3-rem8));
+    --h2c: clamp(var(--mn3-rem5), var(--flu7), var(--mn3-rem7));
+    --h3c: clamp(var(--mn3-rem4), var(--flu6), var(--mn3-rem6));
+    --h4c: clamp(var(--mn3-rem3), var(--flu5), var(--mn3-rem5));
+    --h5c: clamp(var(--mn3-rem3), var(--flu4), var(--mn3-rem4));
+    --h6c: clamp(var(--mn3-rem2), var(--flu3), var(--mn3-rem3));
+    --pc: clamp(16px, var(--flu3), var(--mn3-rem4));
+
+    --type-h0f: 700 var(--h0c) / var(--mn3-sca3) var(--heading-ff);
+    --type-h1f: 700 var(--h1c) / var(--mn3-sca3) var(--heading-ff);
+    --type-h2f: 600 var(--h2c) / var(--mn3-sca3) var(--heading-ff);
+    --type-h3f: 500 var(--h3c) / var(--mn3-sca3) var(--heading-ff);
+    --type-h4f: 500 var(--h4c) / var(--mn3-sca3) var(--heading-ff);
+    --type-h5f: 500 var(--h5c) / var(--mn3-sca3) var(--heading-ff);
+    --type-h6f: 500 var(--h6c) / var(--mn3-sca3) var(--heading-ff);
+
+    --type-h0: 700 var(--mn3-rem9) / var(--mn3-sca3) var(--heading-ff);
+    --type-h1: 700 var(--mn3-rem8) / var(--mn3-sca3) var(--heading-ff);
+    --type-h2: 600 var(--mn3-rem7) / var(--mn3-sca3) var(--heading-ff);
+    --type-h3: 500 var(--mn3-rem6) / var(--mn3-sca3) var(--heading-ff);
+    --type-h4: 500 var(--mn3-rem5) / var(--mn3-sca5) var(--heading-ff);
+    --type-h5: 500 var(--mn3-rem4) / var(--mn3-sca4) var(--heading-ff);
+    --type-h6: 500 var(--mn3-rem3) / var(--mn3-sca4) var(--heading-ff);
+
+    --type-body: 400 var(--mn3-rem3)/var(--mn3-sca6) var(--body-ff);
+
+    --type-p-sm: 400 var(--mn3-rem3)/var(--mn3-sca6) var(--body-ff);
+    --type-p: 400 var(--mn3-rem3)/var(--mn3-sca6) var(--body-ff);
+    --type-p-lg: 400 var(--mn3-rem4)/var(--mn3-sca6) var(--body-ff);
+
+    --type-p: 400 var(--mn3-rem3) / var(--mn3-sca5) var(--body-ff);
+    --type-p-lg: 400 var(--mn3-rem4) / var(--mn3-sca5) var(--body-ff);
+    --type-p-sm: 400 var(--mn3-rem2) / var(--mn3-sca5) var(--body-ff);
+    
+    table, p, blockquote, table, ul, ol {
+        font-size: var(--type-p);
+    }
+}
+[data-scale="major-third"] { 
+    --h0c: clamp(var(--mj3-rem10), var(--flu10), var(--mj3-rem10));
+    --h1c: clamp(var(--mj3-rem6), var(--flu8), var(--mj3-rem8));
+    --h2c: clamp(var(--mj3-rem5), var(--flu7), var(--mj3-rem7));
+    --h3c: clamp(var(--mj3-rem4), var(--flu6), var(--mj3-rem6));
+    --h4c: clamp(var(--mj3-rem3), var(--flu5), var(--mj3-rem5));
+    --h5c: clamp(var(--mj3-rem3), var(--flu4), var(--mj3-rem4));
+    --h6c: clamp(var(--mj3-rem2), var(--flu3), var(--mj3-rem3));
+    --pc: clamp(16px, var(--flu3), var(--mj3-rem4));
+
+    --type-h0f: 700 var(--h0c) / var(--mj3-sca3) var(--heading-ff);
+    --type-h1f: 700 var(--h1c) / var(--mj3-sca3) var(--heading-ff);
+    --type-h2f: 600 var(--h2c) / var(--mj3-sca3) var(--heading-ff);
+    --type-h3f: 500 var(--h3c) / var(--mj3-sca3) var(--heading-ff);
+    --type-h4f: 500 var(--h4c) / var(--mj3-sca3) var(--heading-ff);
+    --type-h5f: 500 var(--h5c) / var(--mj3-sca3) var(--heading-ff);
+    --type-h6f: 500 var(--h6c) / var(--mj3-sca3) var(--heading-ff);
+    
+    --type-h0: 700 var(--mj3-rem9) / var(--mj3-sca3) var(--heading-ff);
+  --type-h1: 700 var(--mj3-rem8) / var(--mj3-sca3) var(--heading-ff);
+  --type-h2: 600 var(--mj3-rem7) / var(--mj3-sca3) var(--heading-ff);
+  --type-h3: 500 var(--mj3-rem6) / var(--mj3-sca3) var(--heading-ff);
+  --type-h4: 500 var(--mj3-rem5) / var(--mj3-sca5) var(--heading-ff);
+  --type-h5: 500 var(--mj3-rem4) / var(--mj3-sca4) var(--heading-ff);
+  --type-h6: 500 var(--mj3-rem3) / var(--mj3-sca4) var(--heading-ff);
+    
+  --type-body: 400 var(--mj3-rem3)/var(--mj3-sca6) var(--body-ff);
+
+  --type-p-sm: 400 var(--mj3-rem3)/var(--mj3-sca6) var(--body-ff);
+  --type-p: 400 var(--mj3-rem3)/var(--mj3-sca6) var(--body-ff);
+  --type-p-lg: 400 var(--mj3-rem4)/var(--mj3-sca6) var(--body-ff);
+
+  --type-p: 400 var(--mj3-rem3) / var(--mj3-sca5) var(--body-ff);
+  --type-p-lg: 400 var(--mj3-rem4) / var(--mj3-sca5) var(--body-ff);
+  --type-p-sm: 400 var(--mj3-rem2) / var(--mj3-sca5) var(--body-ff);
+    
+    table, p, blockquote, table, ul, ol {
+        font-size: var(--type-p);
+    }
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+i[class^="icon-"],
+i[class*=" icon-"],
+i[class^="icon-"] > svg,
+i[class*=" icon-"] > svg {
+    display: inline-flex;
+    align-items: center;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.1em;
+    fill: currentColor;
+}
+
+i[class^="icon-"] > svg,
+i[class*=" icon-"] > svg {
+    display: block;
+}
+
+html {
+    -webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    text-rendering: optimizeLegibility;
+
+    font-feature-settings: "calt" 1, "clig" 1, "kern" 1, "liga" 1, "onum" 0,
+        "pnum" 0, "case" 0;
+    font-variant-ligatures: common-ligatures;
+
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+
+    -ms-overflow-style: scrollbar;
+    scroll-behavior: smooth;
+
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    height: -webkit-fill-available;
+    font-synthesis: none;
+    direction: ltr;
+    
+    font-family: var(--body-ff);
+    font-size: var(--body-fs);
+    line-height: var(--body-lh);
+    font-weight: var(--body-fw);
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+    text-align: left;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        background: transparent;
+    }
+}
+
+@-ms-viewport {
+    width: device-width;
+}
+
+@-moz-document url-prefix() {
+    html {
+        scrollbar-width: none;
+    }
+}
+
+a {
+    color: currentColor;
+    text-decoration: none;
+    background-color: transparent;
+    -webkit-text-decoration-skip: objects;
+    cursor: pointer;
+
+    &:not([href]):not([tabindex]) {
+        text-decoration: none;
+    }
+
+    &:not([href]):not([tabindex]):focus,
+    &:not([href]):not([tabindex]):hover {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    &:not([href]):not([tabindex]):focus {
+        outline: 0;
+    }
+}
+
+button {
+    border: none;
+    margin: 0;
+    padding: 0;
+    width: auto;
+    overflow: visible;
+
+    background: transparent;
+
+    color: inherit;
+    font: inherit;
+
+    line-height: normal;
+
+    -webkit-font-smoothing: inherit;
+    -moz-osx-font-smoothing: inherit;
+
+    -webkit-appearance: none;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+    margin: 0;
+}
+
+article,
+aside,
+dialog,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+nav,
+section {
+    display: block;
+}
+
+ul,
+ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+input,
+button,
+textarea,
+select {
+    font: inherit;
+}
+
+iframe {
+    border: 0;
+}
+
+blockquote,
+q {
+    quotes: none;
+
+    &::before,
+    &::after {
+        content: "";
+        content: none;
+    }
+}
+
+[tabindex="-1"]:focus {
+    outline: none !important;
+}
+
+abbr[title],
+abbr[data-original-title] {
+    cursor: help;
+    text-decoration: underline;
+    text-decoration: underline dotted;
+    border-bottom: 0;
+}
+
+address {
+    font-style: normal;
+    line-height: inherit;
+}
+
+b,
+strong {
+    font-weight: bolder;
+}
+
+figure {
+    margin: 0;
+    -webkit-margin-start: 0;
+    -webkit-margin-end: 0;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    vertical-align: middle;
+    border-style: none;
+    border-image-width: 0;
+    image-rendering: -webkit-optimize-contrast;
+
+    &[src=""] {
+        display: none;
+    }
+}
+
+svg:not(:root) {
+    overflow: visible;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+a,
+area,
+button,
+[role="button"],
+input:not([type="range"]),
+label,
+select,
+summary,
+textarea {
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+}
+
+input,
+select,
+button,
+progress,
+[type="button"],
+[type="submit"],
+[type="reset"],
+[type="search"] {
+    text-rendering: inherit;
+    appearance: none;
+}
+
+input:not(:disabled),
+select:not(:disabled),
+button:not(:disabled),
+progress:not(:disabled),
+[type="button"]:not(:disabled),
+[type="submit"]:not(:disabled),
+[type="reset"]:not(:disabled),
+[type="search"]:not(:disabled) {
+    cursor: pointer;
+}
+
+progress {
+    vertical-align: baseline;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th {
+    text-align: inherit;
+}
+
+label {
+    display: inline-block;
+}
+
+select {
+    word-wrap: normal;
+}
+
+button,
+input,
+select,
+textarea {
+    font-size: 100%;
+    margin: 0;
+    vertical-align: baseline;
+    *vertical-align: middle;
+}
+
+button,
+input {
+    line-height: normal;
+}
+
+button,
+select {
+    text-transform: none;
+}
+
+button,
+html input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+    -webkit-appearance: button;
+    cursor: pointer;
+    *overflow: visible;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    box-sizing: border-box;
+    padding: 0;
+    *height: 13px;
+    *width: 13px;
+}
+
+[list]::-webkit-calendar-picker-indicator {
+    display: none;
+}
+
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+input[type="search"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+    box-sizing: border-box;
+    padding: 0;
+}
+
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"] {
+    -webkit-appearance: textfield;
+}
+
+textarea {
+    overflow: auto;
+    vertical-align: top;
+    resize: vertical;
+}
+
+audio,
+canvas,
+video {
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+    max-width: 100%;
+}
+
+audio:not([controls]) {
+    display: none;
+    height: 0;
+}
+
+[hidden] {
+    display: none;
+}
+
+::-webkit-inner-spin-button,
+::-webkit-outer-spin-button {
+    height: auto;
+}
+
+::-webkit-search-cancel-button,
+::-webkit-search-decoration {
+    -webkit-appearance: none;
+}
+
+::-webkit-datetime-edit {
+    line-height: 0;
+    overflow: visible;
+}
+
+::-webkit-file-upload-button {
+    font: inherit;
+    -webkit-appearance: none;
+}
+
+::-webkit-datetime-edit-fields-wrapper,
+::-webkit-datetime-edit-text,
+::-webkit-datetime-edit-minute,
+::-webkit-datetime-edit-hour-field,
+::-webkit-datetime-edit-day-field,
+::-webkit-datetime-edit-month-field,
+::-webkit-datetime-edit-year-field {
+    padding: 0;
+}
+
+::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+button::-moz-focus-inner,
+[type="button"]::-moz-focus-inner,
+[type="reset"]::-moz-focus-inner,
+[type="submit"]::-moz-focus-inner {
+    padding: 0;
+    border-style: none;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+button {
+     border: none;
+    margin: 0;
+    padding: 0;
+    width: auto;
+    overflow: visible;
+
+    background: transparent;
+
+    color: inherit;
+    font: inherit;
+
+    line-height: normal;
+    -webkit-font-smoothing: inherit;
+    -moz-osx-font-smoothing: inherit;
+    -webkit-appearance: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+
+$selected-scale-values: map-get($ratios, $scale);
+$selected-scale-ratio: nth($selected-scale-values, 4);
+
+$util-scale: (
+    "0": 0,
+    "1": $selected-scale-ratio / 4,
+    "2": $selected-scale-ratio / 2,
+    "3": $selected-scale-ratio,
+    "4": $selected-scale-ratio * 1.5,
+    "5": $selected-scale-ratio * 2
+);
+
+$grid-columns: 12;
+$grid-scale: ();
+
+@for $i from 1 through $grid-columns {
+    $grid-scale: map-merge(
+        $grid-scale,
+        (
+            $i: percentage(1 / $grid-columns * $i)
+        )
+    );
+}
+
+.b-1 { border: 1px solid; }
+.bl-1 { border-left: 1px solid; }
+.br-1 { border-right: 1px solid; }
+.bb-1 { border-bottom: 1px solid; }
+.bt-1 { border-top: 1px solid; }
+
+.mx-auto { margin-left: auto; margin-right: auto; }
+.ml-auto { margin-left: auto; }
+.mr-auto { margin-right: auto; }
+.mt-auto { margin-top: auto; }
+.mb-auto { margin-bottom: auto; }
+
+.container + .container,
+.row + .row {
+    margin-top: var(--gutter);
+}
+
+@mixin generate-grid($size, $container-width, $grid-scale) {
+    .container {
+        $container-max-width: $container-width - strip-unit($base * 2);
+        max-width: #{$container-max-width}px;
+    }
+
+    @each $index, $scale-value in $grid-scale {
+        .col-#{$size}-#{$index},
+        .row-cols-#{$size}-#{$index} > * {
+            flex: 0 0 auto !important;
+            width: $scale-value !important;
+        }
+    }
+
+    .d-#{$size}-none { display: none !important }
+    .d-#{$size}-flex { display: flex !important }
+    .d-#{$size}-inline-flex { display: flex !important }
+    .d-#{$size}-block { display: block !important }
+    .d-#{$size}-grid { display: grid !important }
+
+    .text-#{$size}-center { text-align: center !important }
+    .text-#{$size}-left { text-align: left !important }
+    .text-#{$size}-right { text-align: right !important }
+
+    .flex-#{$size}-row { flex-direction: row !important }
+    .flex-#{$size}-column { flex-direction: column !important }
+    .flex-#{$size}-nowrap { flex-wrap: nowrap !important }
+    .flex-#{$size}-wrap { flex-wrap: wrap !important }
+
+    .justify-content-#{$size}-center { justify-content: center !important }
+    .justify-content-#{$size}-start { justify-content: flex-start !important }
+    .justify-content-#{$size}-end { justify-content: flex-end !important }
+    .justify-content-#{$size}-between { justify-content: space-between !important }
+    .justify-content-#{$size}-around { justify-content: space-around !important }
+    .justify-content-#{$size}-evenly { justify-content: space-evenly !important }
+
+    .align-items-#{$size}-center { align-items: center !important }
+    .align-items-#{$size}-start { align-items: flex-start !important }
+    .align-items-#{$size}-end { align-items: flex-end !important }
+    .align-items-#{$size}-stretch { align-items: stretch !important }
+    .align-items-#{$size}-baseline { align-items: baseline !important }
+
+    .align-self-#{$size}-center { align-self: center !important }
+    .align-self-#{$size}-start { align-self: flex-start !important }
+    .align-self-#{$size}-end { align-self: flex-end !important }
+    .align-self-#{$size}-stretch { align-self: stretch !important }
+    .align-self-#{$size}-baseline { align-self: baseline !important }
+
+    .w-#{$size}-100 { width: 100% !important }
+    .w-#{$size}-100vh { height: 100vh !important }
+    .w-#{$size}-100vw { width: 100vw !important }
+}
+
+@mixin utilities {
+   
+    $breakpoint-names: map-keys($breakpoints);
+
+    $utilities: (
+        "m": margin,
+        "p": padding
+    );
+
+    $directions: (
+        "t": top,
+        "b": bottom,
+        "l": left,
+        "r": right
+    );
+
+    $util-scale-2: map-get($util-scale, "2");
+
+    .container {
+        width: 100%;
+        padding-right: calc(var(--gutter-x) * 0.5) !important;
+        padding-left: calc(var(--gutter-x) * 0.5) !important;
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: calc(-1 * var(--gutter)) !important;
+        margin-right: calc(-0.5 * var(--gutter-x)) !important;
+        margin-left: calc(-0.5 * var(--gutter-x)) !important;
+
+        > * {
+            flex-shrink: 0;
+            width: 100%;
+            max-width: 100%;
+            padding-right: calc(0.5 * var(--gutter-x)) !important;
+            padding-left: calc(0.5 * var(--gutter-x)) !important;
+            margin-top: var(--gutter) !important;
+        }
+    }
+
+    .col { flex: 1 0 0%; }
+
+    .d-none { display: none !important }
+    .d-flex { display: flex !important }
+    .d-inline-flex { display: flex !important }
+    .d-block { display: block !important }
+    .d-grid { display: grid !important }
+
+    .text-center { text-align: center !important }
+    .text-left { text-align: left !important }
+    .text-right { text-align: right !important }
+
+    .flex-row { flex-direction: row !important }
+    .flex-column { flex-direction: column !important }
+    .flex-nowrap { flex-wrap: nowrap !important }
+    .flex-wrap { flex-wrap: wrap !important }
+
+    .justify-content-center { justify-content: center !important }
+    .justify-content-start { justify-content: flex-start !important }
+    .justify-content-end { justify-content: flex-end !important }
+    .justify-content-between { justify-content: space-between !important }
+    .justify-content-around { justify-content: space-around !important }
+    .justify-content-evenly { justify-content: space-evenly !important }
+
+    .align-items-center { align-items: center !important }
+    .align-items-start { align-items: flex-start !important }
+    .align-items-end { align-items: flex-end !important }
+    .align-items-stretch { align-items: stretch !important }
+    .align-items-baseline { align-items: baseline !important }
+
+    .align-self-center { align-self: center !important }
+    .align-self-start { align-self: flex-start !important }
+    .align-self-end { align-self: flex-end !important }
+    .align-self-stretch { align-self: stretch !important }
+    .align-self-baseline { align-self: baseline !important }
+
+    .w-100 { width: 100% !important }
+    .w-100vh { height: 100vh !important }
+    .w-100vw { width: 100vw !important }
+
+    // Pointer Events
+    .pe-none {
+        pointer-events: none !important;
+    }
+    .user-select-none {
+        user-select: none !important;
+    }
+
+    @each $index, $scale-value in $grid-scale {
+        .row-cols-#{$index} > * {
+            flex: 0 0 auto !important;
+        }
+
+        .row-cols-#{$index} > *,
+        .col-#{$index} {
+            width: $scale-value !important;
+        }
+    }
+
+    @for $i from 1 through $grid-columns {
+        $value: map-get($grid-scale, $i);
+        .col-#{$i} {
+            flex: 0 0 auto !important;
+            width: $value !important;
+        }
+    }
+    
+    @each $util-prefix, $css-prop in $utilities {
+        @each $dir-prefix, $css-dir in $directions {
+            @each $key, $value in $util-scale {
+                $size: if($value == 0, 0, #{$value}rem);
+                .#{$util-prefix}#{$dir-prefix}-#{$key},
+                .#{$util-prefix}#{if($dir-prefix == "t" or $dir-prefix == "b", "y", "x")}-#{$key} {
+                    #{$css-prop}-#{$css-dir}: $size !important;
+                }
+            }
+        }
+    }
+
+
+    $breakpoint-names: (
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+    );
+
+    @each $size in $breakpoint-names {
+        $min: map-get(map-get($breakpoints, $size), "min");
+        $max: map-get(map-get($breakpoints, $size), "max");
+
+        // Handle xs and xl specifically
+        @if $size == "xs" and $max {
+            @media (max-width: #{$max}px) {
+                @include generate-grid($size, $max, $grid-scale);
+            }
+        } @else if $size == "xl" and $min {
+            @media (min-width: #{$min}px) {
+                @include generate-grid($size, $min, $grid-scale);
+            }
+        } @else {
+            // Handle other sizes with both min and max
+            @if $min and $max {
+                @media (min-width: #{$min}px) and (max-width: #{$max - 1}px) {
+                    @include generate-grid($size, $min, $grid-scale);
+                }
+            }
+        }
+    }
+
+}
+
+@include utilities();
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap");
 
 html {
@@ -199,7 +1528,7 @@ html {
     bottom: 1rem;
     box-sizing: border-box;
     width: calc(100% - 2rem);
-    height: 200px;
+    height: calc(100vh - 70px - 2rem);
     border-radius: 0.65em;
     overflow: hidden;
     box-shadow: rgba(0, 0, 0, 0.25) 0 54px 55px,
@@ -224,8 +1553,8 @@ html {
         right: 0;
         width: 100%;
         box-sizing: border-box;
-        height: 200px;
-        max-height: 200px;
+        height: calc(100vh - 70px - 2rem);
+        max-height: calc(100vh - 70px - 2rem);
         padding: 1rem;
         overflow-y: scroll;
         background-color: rgba(0, 0, 0, 0.85);
