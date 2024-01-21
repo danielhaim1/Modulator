@@ -1,6 +1,6 @@
 {
   "name": "@danielhaim/event-modulator",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "description": "An advanced debouncing utility designed to optimize high-frequency events in web applications, such as scroll, resize, and input.",
   "keywords": [
     "debounce",
