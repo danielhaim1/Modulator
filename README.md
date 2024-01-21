@@ -1,5 +1,14 @@
 <!-- TOC --><a name="event-modulator"></a>
-# Modulator
+# Event Modulator
+
+## Deprecation Notice
+> **This package has been deprecated.** Please use the new package [@danielhaim/modulator](https://www.npmjs.com/package/@danielhaim/modulator) for future updates and features.
+
+
+> [!IMPORTANT]
+
+
+----
 
 [![npm version](https://img.shields.io/npm/v/@danielhaim/modulator)](https://www.npmjs.com/package/@danielhaim/modulator)
 [![Downloads](https://img.shields.io/npm/dt/@danielhaim/modulator.svg)](https://www.npmjs.com/package/@danielhaim/modulator)
@@ -12,7 +21,7 @@ By incorporating a cache system for debounced function call results, Event Modul
 <!-- TOC --><a name="demo"></a>
 ## Demo
 
-<a target="_blank" href="https://danielhaim1.github.io/EventModulator/"><img src="https://raw.githubusercontent.com/danielhaim1/EventModulator/main/docs/assets/demo.png" width="100%" height="auto" alt="EventModulator Demo"></a>
+<a target="_blank" href="https://danielhaim1.github.io/modulator/"><img src="https://raw.githubusercontent.com/danielhaim1/modulator/main/docs/assets/demo.png" width="100%" height="auto" alt="modulator Demo"></a>
 
 - [Event Modulator](#event-modulator)
    * [Demo](#demo)
