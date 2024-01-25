@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { modulator } from '../index.js';
+import Modulator  from '../index.js';
 
 const cache = new Map ();
 
@@ -27,33 +27,33 @@ function memoize ( func ) {
 describe ( `
     Test Errors`, () => {
 	test ( "Should throw an error if the first parameter is not a function", () => {
-		expect ( () => modulate ( null, 500 ) )
+		expect ( () => Modulator.modulate ( null, 500 ) )
 			.toThrowError ( TypeError );
 	} );
 	test ( "Should throw an error if the second parameter is not a number", () => {
-		expect ( () => modulate ( () => { }, "500" ) )
+		expect ( () => Modulator.modulate ( () => { }, "500" ) )
 			.toThrowError ( TypeError );
-		expect ( () => modulate ( () => { }, NaN ) )
+		expect ( () => Modulator.modulate ( () => { }, NaN ) )
 			.toThrowError ( TypeError );
 	} );
 	test ( "Should throw an error if the third parameter is not a boolean", () => {
-		expect ( () => modulate ( () => { }, 500, "false" ) )
+		expect ( () => Modulator.modulate ( () => { }, 500, "false" ) )
 			.toThrowError ( TypeError );
 	} );
 	test ( "Should throw an error if the fifth parameter is not a number", () => {
-		expect ( () => modulate ( () => { }, 500, true, null, "1000" ) )
+		expect ( () => Modulator.modulate ( () => { }, 500, true, null, "1000" ) )
 			.toThrowError ( TypeError );
-		expect ( () => modulate ( () => { }, 500, true, null, NaN ) )
+		expect ( () => Modulator.modulate ( () => { }, 500, true, null, NaN ) )
 			.toThrowError ( TypeError );
 	} );
 	test ( "Should throw an error if the sixth parameter is not a number or null", () => {
-		expect ( () => modulate ( () => { }, 500, true, null, 1000, "2000" ) )
+		expect ( () => Modulator.modulate ( () => { }, 500, true, null, 1000, "2000" ) )
 			.toThrowError ( TypeError );
-		expect ( () => modulate ( () => { }, 500, true, null, 1000, NaN ) )
+		expect ( () => Modulator.modulate ( () => { }, 500, true, null, 1000, NaN ) )
 			.toThrowError ( TypeError );
 	} );
 	test ( "Should throw an error if the sixth parameter is less than the second parameter", () => {
-		expect ( () => modulate ( () => { }, 500, true, null, 1000, 400 ) )
+		expect ( () => Modulator.modulate ( () => { }, 500, true, null, 1000, 400 ) )
 			.toThrowError ( TypeError );
 	} );
 } );
@@ -62,7 +62,7 @@ describe ( `
     Test Parameters`, () => {
 	test ( "Should debounce the original function", () => {
 		const originalFunc = jest.fn ();
-		const debouncedFunc = modulate ( originalFunc, 1000 );
+		const debouncedFunc = Modulator.modulate ( originalFunc, 1000 );
 		
 		debouncedFunc ();
 		debouncedFunc ();
@@ -78,7 +78,7 @@ describe ( `
 	test ( "Should delay execution by maxWait time", async () => {
 		jest.useFakeTimers (); // Create a mock function
 		const originalFunc = jest.fn (); // Create a modulated version of the function
-		const modulatedFunc = modulate ( originalFunc, 1000, false, null, 100, 2000 ); // Call modulated function
+		const modulatedFunc = Modulator.modulate ( originalFunc, 1000, false, null, 100, 2000 ); // Call modulated function
 		modulatedFunc (); // Schedule the execution of the function
 		setTimeout ( () => {
 			expect ( originalFunc )
@@ -115,14 +115,14 @@ describe ( `
 	
 	it ( "Should debounce a function and return a debounced function", () => {
 		const originalFunc = ( x, y ) => x + y;
-		const debouncedFunc = modulate ( originalFunc, 1000 );
+		const debouncedFunc = Modulator.modulate ( originalFunc, 1000 );
 		expect ( debouncedFunc ).toBeDefined ();
 		expect ( typeof debouncedFunc ).toBe ( "function" );
 	} );
 	
 	it ( "Should debounce and cache the results of the original function", () => {
 		const originalFunc = ( x, y ) => x + y;
-		const debouncedFunc = modulate ( originalFunc, 1000 );
+		const debouncedFunc = Modulator.modulate ( originalFunc, 1000 );
 		const promise1 = debouncedFunc ( 1, 2 );
 		const promise2 = debouncedFunc ( 1, 2 );
 		const promise3 = debouncedFunc ( 1, 2 );

@@ -126,7 +126,7 @@ function addEventListeners () {
 	window.addEventListener (
 		"resize",
 		useModulator
-			? modulate ( () => {
+			? Modulator.modulate ( () => {
 				resizeDebounceExecuting = true;
 				resizeCounter++;
 				logEvent ( `Resize detected`, logDelay, null, "resize", true, () => {
@@ -143,7 +143,7 @@ function addEventListeners () {
 	window.addEventListener (
 		"scroll",
 		useModulator
-			? modulate ( () => {
+			? Modulator.modulate ( () => {
 				scrollDebounceExecuting = true;
 				scrollCounter++;
 				logEvent (
@@ -171,7 +171,7 @@ let resizeListener = () => {
 	resizeCounter++;
 	logEvent ( `Resize`, 1000, resizeCounter, "resize" );
 };
-const modulatedResizeListener = modulate ( () => {
+const modulatedResizeListener = Modulator.modulate ( () => {
 	resizeDebounceExecuting = true;
 	const startTime = performance.now ();
 	logEvent ( `Resize detected`, 0, resizeCounter, "resize" );
@@ -194,7 +194,7 @@ let scrollListener = () => {
 	logEvent ( `Scroll`, 0, scrollCounter, "scroll" );
 };
 
-const modulatedScrollListener = modulate ( () => {
+const modulatedScrollListener = Modulator.modulate ( () => {
 	if ( scrollDebounceExecuting ) {
 		return;
 	}

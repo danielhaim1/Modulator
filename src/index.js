@@ -159,9 +159,3 @@ export function modulate(
 
   return debounced; // Return the debounced function
 }
-
-if (typeof module === 'object' && module.exports) {
-  module.exports = {
-    modulate
-  };
-}

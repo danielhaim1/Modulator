@@ -57,7 +57,7 @@ module.exports = [ {
 	target: "node",
 	entry: "./index.js",
 	output: {
-		filename: "modulator.js",
+		filename: "modulator.module.js",
 		path: path.resolve ( __dirname, "dist" ),
 		libraryTarget: "commonjs2"
 	},
