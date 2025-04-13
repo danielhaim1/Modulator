@@ -1,0 +1,50 @@
+# Renamed from build.yml - Purpose: Build and Deploy Docs Site
+name: Build and Deploy Docs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy-docs: # Renamed job ID for clarity
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4 # Use latest checkout action
+
+    # Note: Node.js install step might be unnecessary if only building docs,
+    # unless Jekyll build process *requires* Node.js for some reason.
+    # Consider removing if not needed for docs.
+    - name: Install Node.js (if needed for docs build)
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x' # Or the version required by your docs build
+    - run: npm install # Installs dependencies - necessary if docs build needs them
+
+    # --- Jekyll Build Steps ---
+    - name: Install Ruby and Jekyll
+      uses: ruby/setup-ruby@v1 # Consider updating ruby/setup-ruby action version if needed
+      with:
+        ruby-version: '3.1' # Or the version specified in your Gemfile
+        bundler-cache: true # Enable Bundler caching
+
+    # The 'bundle config set path' and 'bundle install' are often better handled
+    # by setting bundler-cache: true in setup-ruby, but keeping explicit steps for now.
+    - name: Install Jekyll dependencies
+      working-directory: ./docs # Set working directory for these steps
+      run: |
+        bundle config set path 'vendor/bundle'
+        bundle install --jobs 4 --retry 3
+
+    - name: Build Jekyll site
+      working-directory: ./docs
+      run: bundle exec jekyll build
+
+    # --- Deployment Step ---
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v4 # Use latest gh-pages action
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/_site
+        # enable_jekyll: true # This is often redundant if you build manually before this step 

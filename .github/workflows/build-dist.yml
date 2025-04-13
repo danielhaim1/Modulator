@@ -1,0 +1,44 @@
+name: Build Distribution
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        # Specify Node.js versions compatible with your 'engines' field in package.json
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm' # Enable caching for npm dependencies
+
+    - name: Install dependencies
+      run: npm ci # Use 'ci' for deterministic installs in CI environments
+
+    - name: Check types
+      run: npm run typecheck
+
+    - name: Run tests
+      run: npm test
+
+    - name: Build package distribution files
+      run: npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-node-${{ matrix.node-version }} # Unique name for artifact per Node version
+        path: dist/ # Upload the contents of the dist directory 

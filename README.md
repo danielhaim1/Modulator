@@ -4,7 +4,8 @@ Modulator
 [![npm version](https://img.shields.io/npm/v/@danielhaim/modulator)](https://www.npmjs.com/package/@danielhaim/modulator)
 [![Downloads](https://img.shields.io/npm/dt/@danielhaim/modulator.svg)](https://www.npmjs.com/package/@danielhaim/modulator)
 ![GitHub](https://img.shields.io/github/license/danielhaim1/modulator)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/danielhaim1/modulator/build.yml?branch=main)](https://github.com/danielhaim1/modulator/actions/workflows/build.yml)
+[![Build Distribution](https://img.shields.io/github/actions/workflow/status/danielhaim1/modulator/build-dist.yml?branch=main&label=Build)](https://github.com/danielhaim1/modulator/actions/workflows/build-dist.yml)
+[![Deploy Docs](https://img.shields.io/github/actions/workflow/status/danielhaim1/modulator/build-docs.yml?branch=main&label=Docs)](https://github.com/danielhaim1/modulator/actions/workflows/build-docs.yml)
 [![TypeScript definitions](https://img.shields.io/npm/types/@danielhaim/modulator)](https://www.npmjs.com/package/@danielhaim/modulator)
 
 Modulator is an advanced debouncing utility, now written in **TypeScript**, designed to optimize high-frequency events in web applications (e.g., scroll, resize, input). This standalone solution offers enhanced performance and flexibility compared to basic debouncing functions.
@@ -111,7 +112,6 @@ requirejs(['path/to/modulator.amd'], function(Modulator) {
 ```
 
 ### `modulate(func, wait, immediate?, context?, maxCacheSize?, maxWait?)`
-### `modulate(func, wait, immediate?, context?, maxCacheSize?, maxWait?)` ###
 
 Creates a debounced function that delays invoking `func` until after `wait` milliseconds have elapsed since the last time the debounced function was invoked.
 
@@ -144,8 +144,6 @@ The returned debounced function has an additional method:
 Examples
 --------
 
-*(Review and update existing examples to use Promises)*
-
 #### Basic Debounce (Trailing Edge) ####
 
 ```javascript
@@ -158,8 +156,8 @@ function handleInput(value) {
 const debouncedHandleInput = modulate(handleInput, 500);
 
 searchInput.addEventListener('input', (event) => {
-  debouncedHandleInput(event.target.value);
-  // The promise is returned but we don't need to await it here
+  debouncedHandleInput(event.target.value)
+    .catch(err => console.error("Input Error:", err)); // Optional: Catch potential errors
 });
 ```
 
@@ -175,7 +173,12 @@ function handleClick() {
 const debouncedClick = modulate(handleClick, 1000, true);
 
 myButton.addEventListener('click', () => {
-  debouncedClick().catch(err => { /* Handle cancellation if needed */ });
+  debouncedClick().catch(err => {
+      // Only log if it's not a cancellation error, as we don't cancel here
+      if (err.message !== 'Debounced function call was cancelled.') {
+          console.error("Click Error:", err);
+      }
+  });
 });
 ```
 
@@ -191,14 +194,22 @@ async function searchAPI(query) {
 }
 
 const debouncedSearch = modulate(searchAPI, 400);
+const statusElement = document.getElementById('search-status'); // Assume element exists
+const searchInput = document.getElementById('search-input'); // Assume element exists
 
 searchInput.addEventListener('input', async (event) => {
   const query = event.target.value;
   statusElement.textContent = 'Searching...';
   try {
+    // debouncedSearch returns a promise here
     const results = await debouncedSearch(query);
-    statusElement.textContent = `Found ${results.length} results.`;
-    // Update UI with results
+    // Check if query is still relevant before updating UI
+    if (query === searchInput.value) {
+        statusElement.textContent = `Found ${results.length} results.`;
+        // Update UI with results
+    } else {
+        console.log("Query changed, ignoring results for:", query);
+    }
   } catch (error) {
      // Handle errors from searchAPI OR cancellation errors
     if (error.message === 'Debounced function call was cancelled.') {
@@ -211,7 +222,7 @@ searchInput.addEventListener('input', async (event) => {
   }
 });
 
-// Example of cancellation
+// Example of cancellation (Alternative approach combining input/cancel)
 let currentQuery = '';
 searchInput.addEventListener('input', async (event) => {
     const query = event.target.value;
@@ -219,26 +230,36 @@ searchInput.addEventListener('input', async (event) => {
     statusElement.textContent = 'Typing...';
 
     // Cancel any previous pending search before starting a new one
-    debouncedSearch.cancel();
+    debouncedSearch.cancel(); // Cancel previous timer/promise
+
+    if (!query) { // Handle empty input immediately
+        statusElement.textContent = 'Enter search term.';
+        // Clear results UI
+        return;
+    }
 
     // Only proceed if query is not empty after debounce period
     try {
-        // Start new search (will wait 400ms)
-        const results = await debouncedSearch(query);
-        // Check if the query changed while we were waiting
+        statusElement.textContent = 'Waiting...'; // Indicate waiting for debounce
+        // Start new search (will wait 400ms unless cancelled again)
+        const results = await debouncedSearch(query); // New promise for this call
+
+        // Re-check if the query changed *after* the await completed
         if (query === currentQuery) {
            statusElement.textContent = `Found ${results.length} results.`;
            // Update UI
         } else {
             console.log('Results ignored, query changed.');
+             // Status might remain 'Typing...' from next input event
         }
     } catch (error) {
+       // Handle errors from the awaited promise
        if (error.message !== 'Debounced function call was cancelled.') {
            console.error('Search failed:', error);
            statusElement.textContent = `Error: ${error.message}`;
        } else {
-           // Ignore cancellation errors here as we trigger cancel manually
-           console.log('Previous search cancelled.');
+           // Ignore cancellation errors here as we trigger cancel often
+           console.log('Search promise cancelled.');
        }
     }
 });
@@ -251,14 +272,32 @@ searchInput.addEventListener('input', async (event) => {
 function saveData() {
   console.log('Saving data to server...');
   // API call to save
+  return Promise.resolve({ status: 'Saved' }); // Example return
 }
 
 // Debounce saving by 1 second, but ensure it saves
 // at least once every 5 seconds even if user keeps typing.
 const debouncedSave = modulate(saveData, 1000, false, null, 0, 5000); // No cache, maxWait 5s
+const saveStatus = document.getElementById('save-status'); // Assume element exists
+const textArea = document.getElementById('my-textarea'); // Assume element exists
 
 textArea.addEventListener('input', () => {
-  debouncedSave().catch(err => console.error("Save Error:", err));
+  saveStatus.textContent = 'Changes detected, waiting to save...';
+  debouncedSave()
+      .then(result => {
+          // Check if still relevant (optional)
+          saveStatus.textContent = `Saved successfully at ${new Date().toLocaleTimeString()}`;
+          console.log('Save result:', result);
+      })
+      .catch(err => {
+          if (err.message !== 'Debounced function call was cancelled.') {
+              console.error("Save Error:", err);
+              saveStatus.textContent = `Save failed: ${err.message}`;
+          } else {
+              console.log("Save cancelled.");
+               // Status remains 'waiting...' or might be updated by next input
+          }
+      });
 });
 ```
 
@@ -272,5 +311,10 @@ Resources
 Report Bugs
 -----------
 
-If you encounter any bugs while using Modulator, please report them to the GitHub issue tracker.
-When submitting a bug report, please include as much information as possible.
+If you encounter any bugs while using Modulator, please report them to the [GitHub issue tracker](https://github.com/danielhaim1/modulator/issues).
+When submitting a bug report, please include as much information as possible, such as:
+*   Version of Modulator used.
+*   Browser/Node.js environment and version.
+*   Steps to reproduce the bug.
+*   Expected behavior vs. actual behavior.
+*   Any relevant code snippets.
