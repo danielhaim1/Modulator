@@ -2,7 +2,9 @@
 babel.config.cjs
 webpack.config.cjs
 jest.config.cjs
+tsconfig.json
 jsdoc.json
+.editorconfig
 
 # Source and Tests
 src/
@@ -22,13 +24,15 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 
-# Build cache/logs
+# Build cache/logs/dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+coverage/
 
-# Other
+# Other dev files
 .nvmrc
 docs/
-.github/ 
+.github/
+index.js # Exclude top-level JS if TS source is the main entry now 

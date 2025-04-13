@@ -10,7 +10,8 @@
     "performance",
     "optimization",
     "utility",
-    "helper"
+    "helper",
+    "typescript"
   ],
   "homepage": "https://github.com/danielhaim1/modulator/#readme",
   "bugs": {
@@ -25,29 +26,32 @@
     "name": "Daniel Haim",
     "url": "https://github.com/danielhaim1"
   },
-  "main": "./dist/modulator.module.js",
+  "main": "./dist/modulator.cjs",
   "module": "./dist/modulator.esm.js",
   "browser": "./dist/modulator.umd.js",
+  "types": "./dist/index.d.ts",
   "files": [
     "LICENSE",
     "README.md",
-    "index.js",
     "dist/",
     "package.json"
   ],
   "scripts": {
     "generate-docs": "jsdoc -c jsdoc.json",
-    "dev": "webpack --mode development --watch",
     "build": "webpack --config webpack.config.cjs",
     "build-docs": "cd docs && bundle install && bundle exec jekyll build",
-    "release": "npm run build && npm version patch && git push && git tag v$(npm view . version) && git push --tags && npm publish",
-    "release-major": "npm version major && npm run build && git add -A && git commit -m 'Major Release: v$(node -p \"require('./package.json').version\")' && git push && npm publish",
-    "release-minor": "npm version minor && npm run build && git add -A && git commit -m 'Minor Release: v$(node -p \"require('./package.json').version\")' && git push && npm publish",
+    "release": "npm run test && npm run build && npm version patch && git push && git tag v$(npm view . version) && git push --tags && npm publish",
+    "release-major": "npm run test && npm run build && npm version major && git push && git tag v$(npm view . version) && git push --tags && npm publish",
+    "release-minor": "npm run test && npm run build && npm version minor && git push && git tag v$(npm view . version) && git push --tags && npm publish",
     "test": "jest --config=jest.config.cjs",
     "test:watch": "jest --watch --config=jest.config.cjs",
     "test:coverage": "jest --coverage --config=jest.config.cjs",
-    "tree": "tree -I 'node_modules'",
-    "clean": "rm -rf dist/ && mkdir dist/"
+    "tree": "tree -I 'node_modules|dist'",
+    "clean": "rm -rf dist/ && mkdir dist/",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=16"
   },
   "devDependencies": {
     "@babel/cli": "^7.27.0",
@@ -58,6 +62,8 @@
     "@babel/preset-env": "^7.26.9",
     "@babel/runtime-corejs3": "^7.27.0",
     "@jest/expect": "^29.5.0",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.16.1",
     "babel-jest": "^29.5.0",
     "babel-loader": "^10.0.0",
     "esbuild": "^0.25.2",
@@ -73,9 +79,11 @@
     "puppeteer": "^24.6.1",
     "puppeteer-core": "^24.6.1",
     "terser-webpack-plugin": "^5.3.14",
+    "ts-jest": "^29.2.3",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.5.4",
     "webpack": "^5.99.5",
-    "webpack-cli": "^6.0.1",
-    "webpack-node-externals": "^3.0.0"
+    "webpack-cli": "^6.0.1"
   },
   "publishConfig": {
     "access": "public"

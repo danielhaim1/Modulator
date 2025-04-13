@@ -4,10 +4,18 @@ Modulator
 [![npm version](https://img.shields.io/npm/v/@danielhaim/modulator)](https://www.npmjs.com/package/@danielhaim/modulator)
 [![Downloads](https://img.shields.io/npm/dt/@danielhaim/modulator.svg)](https://www.npmjs.com/package/@danielhaim/modulator)
 ![GitHub](https://img.shields.io/github/license/danielhaim1/modulator)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/danielhaim1/modulator/node.js.yml?branch=main)](https://github.com/danielhaim1/modulator/actions/workflows/node.js.yml)
+[![TypeScript definitions](https://img.shields.io/npm/types/@danielhaim/modulator)](https://www.npmjs.com/package/@danielhaim/modulator)
 
-Modulator is an advanced debouncing utility designed to optimize high-frequency events in web applications, such as scroll, resize, and input. This standalone solution surpasses other debouncing functions like Lodash and Underscore in terms of performance and flexibility. Key features include parameter validation, cache, and result storage, control over cache size, a maximum wait time, and a Promise-based return.
+Modulator is an advanced debouncing utility, now written in **TypeScript**, designed to optimize high-frequency events in web applications (e.g., scroll, resize, input). This standalone solution offers enhanced performance and flexibility compared to basic debouncing functions.
 
-By incorporating a cache system for debounced function call results, Modulator allows users to control the cache size through the maxCacheSize parameter, optimizing performance and memory usage. The Promise-based return simplifies the handling and tracking of function call outcomes. Additionally, the module includes a cancel method for aborting the debounced function execution when necessary and a result method for retrieving the result of the last execution. These features provide enhanced control and flexibility for developers, making Modulator a superior choice for debouncing solutions in web applications.
+Key features include:
+*   **Promise-based Return:** Always returns a Promise that resolves with the result of your function or rejects on error/cancellation.
+*   **Configurable Caching:** Optional result caching based on arguments with controllable `maxCacheSize`.
+*   **Immediate Execution:** Option (`immediate: true`) to trigger the function on the leading edge.
+*   **Maximum Wait Time:** Optional `maxWait` parameter to guarantee execution after a certain period, even with continuous calls.
+*   **Cancellation:** A `.cancel()` method to abort pending debounced calls and reject their associated Promise.
+*   **TypeScript Support:** Ships with built-in type definitions for a better developer experience.
 
 ## Demo ##
 
@@ -16,333 +24,241 @@ By incorporating a cache system for debounced function call results, Modulator a
 API Documentation
 -----------------
 
-To initiate, install `Modulator` using NPM:
+### Installation ###
 
 ```bash
-npm i @danielhaim/modulator
+npm install @danielhaim/modulator
+# or
+yarn add @danielhaim/modulator
 ```
 
-### Module Example ###
+### Usage ###
 
-```js
-import Modulator from "./path/to/danielhaim/modulator";
-// CDN → import Modulator from "https://esm.sh/@danielhaim/modulator"
+#### ES Modules (Recommended) ####
 
-Modulator.modulate(func, wait, immediateopt, contextopt, maxCacheSizeopt, maxWaitopt) → {function}
+```javascript
+import { modulate } from '@danielhaim/modulator';
+// or import default Modulator from '@danielhaim/modulator'; // If using the object wrapper (less common now)
+
+async function myAsyncFunction(query) {
+  console.log('Executing with:', query);
+  // Simulate work
+  await new Promise(res => setTimeout(res, 50));
+  if (query === 'fail') throw new Error('Failed!');
+  return `Result for ${query}`;
+}
+
+const debouncedFunc = modulate(myAsyncFunction, 300);
+
+debouncedFunc('query1')
+  .then(result => console.log('Success:', result)) // Logs 'Success: Result for query1' after 300ms
+  .catch(error => console.error('Caught:', error));
+
+debouncedFunc('fail')
+  .then(result => console.log('Success:', result))
+  .catch(error => console.error('Caught:', error)); // Logs 'Caught: Error: Failed!' after 300ms
+
+// Using async/await
+async function run() {
+  try {
+    const result = await debouncedFunc('query2');
+    console.log('Async Success:', result);
+  } catch (error) {
+    console.error('Async Error:', error);
+  }
+}
+run();
 ```
 
-### `Modulator.modulate()` ###
+#### CommonJS ####
 
-Creates a debounced function with a configurable cache and maximum wait time. The debounced function delays invoking `func` until after `wait` milliseconds have elapsed since the last time the debounced function was invoked. The function also caches its results based on the arguments passed. If `immediate` is true, it triggers the function on the leading edge, instead of the trailing.
+```javascript
+const { modulate } = require('@danielhaim/modulator');
+
+const debouncedFunc = modulate(/* ... */);
+// ... usage is the same
+```
+
+#### Browser (UMD / Direct Script) ####
+
+Include the UMD build:
+
+```html
+<!-- Download dist/modulator.umd.js or use a CDN like jsDelivr/unpkg -->
+<script src="path/to/modulator.umd.js"></script>
+<script>
+  // Modulator is available globally
+  const debouncedFunc = Modulator.modulate(myFunction, 200);
+
+  myButton.addEventListener('click', async () => {
+      try {
+          const result = await debouncedFunc('data');
+          console.log('Got:', result);
+      } catch (e) {
+          console.error('Error:', e);
+      }
+  });
+</script>
+```
+
+#### AMD ####
+
+```javascript
+requirejs(['path/to/modulator.amd'], function(Modulator) {
+  const debouncedFunc = Modulator.modulate(myFunction, 200);
+  // ...
+});
+```
+
+### `modulate(func, wait, immediate?, context?, maxCacheSize?, maxWait?)` ###
+
+Creates a debounced function that delays invoking `func` until after `wait` milliseconds have elapsed since the last time the debounced function was invoked.
+
+**Returns:** `DebouncedFunction` - A new function that returns a `Promise`. This promise resolves with the return value of the original `func` or rejects if `func` throws an error, returns a rejected promise, or if the debounced call is cancelled via `.cancel()`.
 
 ### Parameters ###
 
-|Name|Type|Attributes|Default|Description|
-|--- |--- |--- |--- |--- |
-|`func`|function|||The function to debounce.|
-|`wait`|number|||The debouncing wait time in milliseconds.|
-|`immediate`|boolean|`<optional>`|false|Flag to determine if the function should be executed immediately.|
-|`context`|Object|`<optional>`|null|The context in which the function should be executed.|
-|`maxCacheSize`|number|`<optional>`|100|The maximum cache size for storing results.|
-|`maxWait`|number|null|`<optional>`|null|The maximum wait time in milliseconds that the function can be delayed.|
+| Name           | Type                                     | Attributes | Default   | Description                                                                                                                               |
+| -------------- | ---------------------------------------- | ---------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `func`         | `Function`                               |            |           | The function to debounce. Can be synchronous or asynchronous (return a Promise).                                                            |
+| `wait`         | `number`                                 |            |           | The debouncing wait time in milliseconds. Must be non-negative.                                                                          |
+| `immediate?`   | `boolean`                                | `<optional>` | `false`   | If `true`, triggers `func` on the leading edge instead of the trailing edge. Subsequent calls within the `wait` period are ignored until the cooldown finishes. |
+| `context?`     | `object`                                 | `<optional>` | `null`    | The context (`this`) to apply when invoking `func`. Defaults to the context the debounced function is called with.                       |
+| `maxCacheSize?`| `number`                                 | `<optional>` | `100`     | The maximum number of results to cache based on arguments. Uses `JSON.stringify` for keys. Set to `0` to disable caching. Must be non-negative. |
+| `maxWait?`     | `number` &#124; `null`                  | `<optional>` | `null`    | The maximum time (in ms) `func` is allowed to be delayed before it's invoked, even if calls keep occurring. Must be `>= wait` if set.    |
 
 ### Enhanced Functionality ###
 
-Once you create a debounced function using `modulate`, it comes with additional methods that enhance its capabilities:
+The returned debounced function has an additional method:
 
-- `debounced.cancel()`: Cancels the execution of the debounced function. This is useful if you need to prevent the function from being called if certain conditions are met.
-- `debounced.result()`: Returns an array of the results from all the invocations of the debounced function. It provides a way to access the outcomes of the function calls, especially useful when dealing with asynchronous operations.
+*   **`debouncedFunc.cancel()`**: Cancels any pending invocation of the debounced function. If a call was pending, the `Promise` returned by that call will be rejected with an error indicating cancellation. This does *not* clear the result cache.
 
-These methods provide greater control and flexibility in managing the debounced function, allowing for more sophisticated usage patterns in your applications.
+### Caching ###
+
+*   When `maxCacheSize > 0`, Modulator caches the results (resolved values) of successful `func` invocations.
+*   The cache key is generated using `JSON.stringify(arguments)`. This works well for primitive arguments but may have limitations with complex objects, functions, or circular references.
+*   If a subsequent call is made with the same arguments (generating the same cache key) while the result is in the cache, the cached result is returned immediately via a resolved Promise, and `func` is not invoked.
+*   The cache uses a simple Least Recently Used (LRU) eviction strategy: when the cache exceeds `maxCacheSize`, the oldest entry is removed. Accessing a cached item marks it as recently used.
 
 Examples
 --------
 
-The package can be imported and used in both Node.js and browser environments using the following syntax:
+*(Review and update existing examples to use Promises)*
 
-```html
-<script src="./path/to/modulator.amd.js"></script>
-<script>
-  const debouncedFunc = Modulator.modulate(originalFunc, 1000);
-</script>
-```
+#### Basic Debounce (Trailing Edge) ####
 
-In the example Below, `debouncedFunc` is a debounced version of `originalFunc`. The function `originalFunc` will be invoked no more than once every 1000 milliseconds (1 second).
-
-```js
-import Modulator from "./path/to/danielhaim/modulator";
-
-// Debounce the function to be called only once per 100ms
-const debouncedFunction = Modulator.modulate(myFunction, 100);
-
-// Call the debounced function on high-frequency events
-element.addEventListener('mousemove', debouncedFunction);
-
-const originalFunc = () => {
-  console.log('Original function called');
-};
-
-const debouncedFunc = Modulator.modulate(originalFunc, 1000);
-
-// Call the debounced function multiple times
-debouncedFunc();
-debouncedFunc();
-debouncedFunc();
-debouncedFunc();
-debouncedFunc();
-```
-
-### Debouncing a resize event listener ###
-
-```js
-function handleResize(event) {
-  // Do something on resize
+```javascript
+function handleInput(value) {
+  console.log('Processing input:', value);
+  // e.g., make API call
 }
 
-const debouncedHandleResize = Modulator.modulate(handleResize, 100);
+// Debounce to run only 500ms after the user stops typing
+const debouncedHandleInput = modulate(handleInput, 500);
 
-window.addEventListener('resize', debouncedHandleResize);
-```
-
-### Debouncing a form submission ###
-
-```js
-function handleSubmit(event) {
-  event.preventDefault();
-  // Make API request to submit form data
-}
-
-const debouncedHandleSubmit = Modulator.modulate(handleSubmit, 1000, true);
-
-document.querySelector('#my-form').addEventListener('submit', debouncedHandleSubmit);
-```
-
-### Debouncing a search function ###
-  
-```js
-function handleSearch(query) {
-  // Make API request and display results
-}
-
-const debouncedHandleSearch = Modulator.modulate(handleSearch, 500);
-
-document.querySelector('#search-input').addEventListener('input', (event) => {
-  debouncedHandleSearch(event.target.value);
+searchInput.addEventListener('input', (event) => {
+  debouncedHandleInput(event.target.value);
+  // The promise is returned but we don't need to await it here
 });
 ```
 
-### Debouncing a mouseover event listener ###
+#### Immediate Execution (Leading Edge) ####
 
-```js
-function handleMouseover(event) {
-  // Display tooltip or other information
+```javascript
+function handleClick() {
+  console.log('Button clicked!');
+  // Perform action immediately, but prevent rapid re-clicks
 }
 
-const debouncedHandleMouseover = Modulator.modulate(handleMouseover, 250);
+// Trigger immediately, then ignore calls for 1000ms
+const debouncedClick = modulate(handleClick, 1000, true);
 
-document.querySelector('#my-element').addEventListener('mouseover', debouncedHandleMouseover);
-```
-
-### Debouncing a resize event listener with a maximum wait time ###
-
-```js
-function handleResize(event) {
-  // do something on resize
-}
-
-const debouncedHandleResize = Modulator.modulate(handleResize, 100, false, null, 10, 500);
-
-window.addEventListener('resize', debouncedHandleResize);
-```
-
-### Debouncing a form submission ###
-
-```js
-function handleSubmit(event) {
-  event.preventDefault();
-  // make API request to submit form data
-}
-
-const debouncedHandleSubmit = Modulator.modulate(handleSubmit, 1000, true);
-
-document.querySelector('#my-form').addEventListener('submit', debouncedHandleSubmit);
-```
-
-### Debouncing a search function ###
-
-```js
-function handleSearch(query) {
-  // make API request and display results
-}
-
-const debouncedHandleSearch = Modulator.modulate(handleSearch, 500);
-
-document.querySelector('#search-input').addEventListener('input', (event) => {
-  debouncedHandleSearch(event.target.value);
+myButton.addEventListener('click', () => {
+  debouncedClick().catch(err => { /* Handle cancellation if needed */ });
 });
 ```
 
-### Debouncing a mouseover event listener ###
+#### Handling Promise Results & Errors ####
 
-```js
-function handleMouseover(event) {
-  // display tooltip or other information
+```javascript
+async function searchAPI(query) {
+  if (!query) return []; // Handle empty query
+  console.log(`Searching API for: ${query}`);
+  const response = await fetch(`/api/search?q=${query}`);
+  if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+  return response.json();
 }
 
-const debouncedHandleMouseover = Modulator.modulate(handleMouseover, 250);
+const debouncedSearch = modulate(searchAPI, 400);
 
-document.querySelector('#my-element').addEventListener('mouseover', debouncedHandleMouseover);
-```
-
-Advanced Examples
------------------
-
-### Debouncing a function with cache ###
-
-```js
-// Example function to fetch data
-function fetchData(query) {
-  console.log(`Fetching data for query: ${query}`);
-  // Perform an operation, such as fetching from a server
-  return Promise.resolve(`Data for "${query}"`);
-}
-
-// Debounced version of fetchData with cache size of 2
-const debouncedFetchData = Modulator.modulate(fetchData, 500, false, null, 2);
-
-// Call debouncedFetchData multiple times with the same query
-debouncedFetchData('apple');
-debouncedFetchData('apple');
-debouncedFetchData('banana');
-
-// Only the last call will invoke the original function after 500ms
-setTimeout(() => {
-  debouncedFetchData('apple').then(console.log);
-  debouncedFetchData('banana').then(console.log);
-}, 1000);
-```
-
-### Debouncing a Function with Result Aggregation ###
-
-In this example, `originalFunc` calculates the sum of two numbers. We debounce this function using `modulate`. Despite multiple calls to the debounced function with the same arguments within a short interval, it only executes once after the 1000ms wait time. The result method then retrieves the `result` of the debounced function's last execution, which is `[3]` in this case.
-
-```js
-// Define a simple function that adds two numbers
-const originalFunc = (x, y) => x + y;
-
-// Create a debounced version of the original function with a 1000ms wait time
-const debouncedFunc = Modulator.modulate(originalFunc, 1000);
-
-// Call the debounced function multiple times within a short interval
-const results = [];
-for (let i = 0; i < 3; i++) {
-  results.push(debouncedFunc(1, 2)); // Each call returns a promise
-}
-
-// After the debounce interval, check the results
-setTimeout(() => {
-  // Use Promise.all to wait for all debounced function calls to resolve
-  Promise.all(results).then(values => {
-    console.log('Results of each debounced call:', values); // Expect multiple [3]
-    console.log('Result from the debounced function\'s last execution:', debouncedFunc.result()); // Expect [3]
-  });
-}, 2000);
-```
-
-### Debouncing a function with cache ###
-
-Here's an example of creating a debounced version of a function `fetchData` with a cache size of 2. The debounced function `debouncedFetchData` is called multiple times with the same query ('apple' and 'banana'). Still, the original part is only invoked for the last two calls (one for 'apple' and one for 'banana'). After 1 second, the function is called again for 'apple' and 'banana,' and the results are retrieved from the cache instead of invoking the original function.
-
-```js
-import Modulator from "@danielhaim/modulator";
-
-// Example function to fetch data
-function fetchData(query) {
-  console.log(`Fetching data for query: ${query}`);
-  // Perform expensive operation, such as fetching from a server
-  return Promise.resolve(`Data for "${query}"`);
-}
-
-// Debounced version of fetchData with cache size of 2
-const debouncedFetchData = Modulator.modulate(fetchData, 500, false, null, 2);
-
-// Call debouncedFetchData multiple times with same query
-debouncedFetchData('apple');
-debouncedFetchData('apple');
-debouncedFetchData('apple');
-debouncedFetchData('banana');
-debouncedFetchData('banana');
-
-// Only the last 2 calls will invoke the original function after 1 second
-setTimeout(() => {
-  debouncedFetchData('apple');
-  debouncedFetchData('banana');
-}, 1000);
-```
-
-#### maxCacheSize Parameter ###
-
-The modulate function includes a `maxCacheSize` parameter that allows you to control the cache size of the debounced function. This parameter specifies the maximum number of function results that should be cached. Once the cache size is reached, the oldest result will be removed to accommodate the new result. If `maxCacheSize` is set to `null` or `undefined,` the cache will have unlimited size.
-
-#### Caching results ###
-
-In this example, the `memoize` function creates a cached version of a function to return the same result for the same arguments, improving performance by avoiding unnecessary function calls.
-
-```js
-// Create a new Map object to store the cache
-const cache = new Map();
-
-// Memoize function takes in a function as an argument
-const memoize = func => {
-  // Return a new function that takes any number of arguments
-  return function (...args) {
-    // Convert the arguments to a string to be used as a cache key
-    const key = JSON.stringify(args);
-    // Check if the result for the given arguments has already been cached
-    if (cache.has(key)) {
-      // If so, return the cached result
-      return cache.get(key);
+searchInput.addEventListener('input', async (event) => {
+  const query = event.target.value;
+  statusElement.textContent = 'Searching...';
+  try {
+    const results = await debouncedSearch(query);
+    statusElement.textContent = `Found ${results.length} results.`;
+    // Update UI with results
+  } catch (error) {
+     // Handle errors from searchAPI OR cancellation errors
+    if (error.message === 'Debounced function call was cancelled.') {
+        console.log('Search cancelled.');
+        // Status might already be 'Searching...' which is fine
+    } else {
+        console.error('Search failed:', error);
+        statusElement.textContent = `Error: ${error.message}`;
     }
-    // Otherwise, call the original function with the given arguments
-    const result = func(...args);
-    // Cache the result and return it
-    cache.set(key, result);
-    return result;
-  };
-};
+  }
+});
 
-// Example function to be memoized
-const originalFunc = x => x + 1;
-// Memoized version of the function
-const memoizedFunc = memoize(originalFunc);
-// Call the memoized function three times with the same argument
-const result1 = memoizedFunc(1);
-const result2 = memoizedFunc(1);
-const result3 = memoizedFunc(1);
+// Example of cancellation
+let currentQuery = '';
+searchInput.addEventListener('input', async (event) => {
+    const query = event.target.value;
+    currentQuery = query;
+    statusElement.textContent = 'Typing...';
+
+    // Cancel any previous pending search before starting a new one
+    debouncedSearch.cancel();
+
+    // Only proceed if query is not empty after debounce period
+    try {
+        // Start new search (will wait 400ms)
+        const results = await debouncedSearch(query);
+        // Check if the query changed while we were waiting
+        if (query === currentQuery) {
+           statusElement.textContent = `Found ${results.length} results.`;
+           // Update UI
+        } else {
+            console.log('Results ignored, query changed.');
+        }
+    } catch (error) {
+       if (error.message !== 'Debounced function call was cancelled.') {
+           console.error('Search failed:', error);
+           statusElement.textContent = `Error: ${error.message}`;
+       } else {
+           // Ignore cancellation errors here as we trigger cancel manually
+           console.log('Previous search cancelled.');
+       }
+    }
+});
+
 ```
 
-Tests
------
+#### Using `maxWait` ####
 
-```bash
-Test Errors
-✓ Should throw an error if the first parameter is not a function (2 ms)
-✓ Should throw an error if the second parameter is not a number (1 ms)
-✓ Should throw an error if the third parameter is not a boolean
-✓ Should throw an error if the fifth parameter is not a number (1 ms)
-✓ Should throw an error if the sixth parameter is not a number or null (1 ms)
-✓ Should throw an error if the sixth parameter is less than the second parameter
+```javascript
+function saveData() {
+  console.log('Saving data to server...');
+  // API call to save
+}
 
-Test Parameters
-✓ Should debounce the original function (1 ms)
-✓ Should delay execution by maxWait time (1 ms)
-✓ Should cache results for the same arguments (1 ms)
-✓ Should debounce a function and return a debounced function
-✓ Should debounce and cache the results of the original function
+// Debounce saving by 1 second, but ensure it saves
+// at least once every 5 seconds even if user keeps typing.
+const debouncedSave = modulate(saveData, 1000, false, null, 0, 5000); // No cache, maxWait 5s
 
-Test EventListeners
-✓ Should trigger mouseover event (1 ms)
-✓ Should trigger window resize event
+textArea.addEventListener('input', () => {
+  debouncedSave().catch(err => console.error("Save Error:", err));
+});
 ```
 
 Resources

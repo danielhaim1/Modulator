@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    /* Base Options: */
+    "esModuleInterop": true, // Enables compatibility with CommonJS modules
+    "skipLibCheck": true, // Skip type checking of declaration files
+    "target": "ES2016", // Target modern JavaScript features but ensure compatibility
+    "allowJs": true, // Allow JavaScript files to be compiled (optional, but can be helpful)
+    "resolveJsonModule": true, // Allow importing JSON files
+    "moduleDetection": "force", // Treat files as modules even without imports/exports
+    "isolatedModules": true, // Ensure modules are processed independently (needed for some bundlers/transpilers)
+
+    /* Strictness */
+    "strict": true, // Enable all strict type-checking options
+    "noUncheckedIndexedAccess": true, // Add 'undefined' to types derived from index signatures
+    "noImplicitAny": true, // Raise error on expressions and declarations with an implied 'any' type.
+
+    /* If transpiling with TypeScript: */
+    "module": "CommonJS", // Output module format (Webpack/ts-loader might override this)
+    "outDir": "./dist", // Redirect output structure to the directory
+    "sourceMap": true, // Generate corresponding '.map' file.
+
+    /* If NOT transpiling with TypeScript: */
+    // "module": "preserve", // Let Babel/Webpack handle module transformation
+    // "noEmit": true, // Do not emit output (use Babel/Webpack for actual JS generation)
+
+    /* Declaration Files */
+    "declaration": true, // Generate corresponding '.d.ts' file.
+    "declarationMap": true, // Generate source maps for declaration files.
+    "declarationDir": "./dist", // Output directory for generated declaration files.
+
+
+    /* Project Structure */
+    "rootDir": "./src", // Specify the root directory of input files
+     // "baseUrl": "./", // Base directory to resolve non-absolute module names (optional)
+     // "paths": {} // Module path aliases (optional)
+  },
+   "include": ["src/**/*.ts"], // Compile only files in the src directory
+   "exclude": ["node_modules", "dist", "__test__"] // Exclude these directories
+} 
