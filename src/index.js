@@ -12,19 +12,24 @@
  * @param {number} [maxCacheSize=100] - The maximum cache size for storing results.
  * @param {number|null} [maxWait=null] - The maximum wait time in milliseconds that the function can be delayed.
  * 
- * @returns {Function} A new debounced function.
+ * @returns {Function} A new debounced function that returns a Promise resolving with the result of `func`.
  *
  * @example
  * // Define a function to be debounced
- * function myFunction() {
- *     console.log('Function executed!');
+ * async function fetchData(query) {
+ *     console.log('Fetching data for:', query);
+ *     // Simulate async operation
+ *     await new Promise(resolve => setTimeout(resolve, 100));
+ *     if (query === 'error') throw new Error('Failed to fetch');
+ *     return `Data for ${query}`;
  * }
  * 
  * // Create a debounced version of the function
- * const debouncedFunction = modulate(myFunction, 200, false);
+ * const debouncedFetch = modulate(fetchData, 200);
  * 
  * // Call the debounced function
- * debouncedFunction();
+ * debouncedFetch('query1').then(console.log).catch(console.error);
+ * debouncedFetch('error').then(console.log).catch(console.error); // Will log error after delay
  */
 
 export function modulate(
@@ -50,112 +55,143 @@ export function modulate(
   if (typeof func !== "function") {
     throw new TypeError("Expected a function for the first parameter");
   }
-  if (typeof wait !== "number" || isNaN(wait)) {
-    throw new TypeError("Expected a number for the second parameter");
-  }
-  if (typeof wait !== "number" || isNaN(wait)) {
-    throw new TypeError("Expected a number for the second parameter (wait)");
+  if (typeof wait !== "number" || isNaN(wait) || wait < 0) {
+    throw new TypeError("Expected a non-negative number for the second parameter (wait)");
   }
   if (typeof immediate !== "boolean") {
     throw new TypeError("Expected a boolean for the third parameter");
   }
-  if (typeof maxCacheSize !== "number" || isNaN(maxCacheSize)) {
-    throw new TypeError("Expected a number for the fifth parameter");
+  if (typeof maxCacheSize !== "number" || isNaN(maxCacheSize) || maxCacheSize < 0) {
+    throw new TypeError("Expected a non-negative number for the fifth parameter (maxCacheSize)");
   }
-  if (maxWait !== null && (typeof maxWait !== "number" || isNaN(maxWait))) {
-    throw new TypeError("Expected a number for the sixth parameter");
+  if (maxWait !== null && (typeof maxWait !== "number" || isNaN(maxWait) || maxWait < 0)) {
+    throw new TypeError("Expected null or a non-negative number for the sixth parameter (maxWait)");
   }
   if (maxWait !== null && maxWait < wait) {
     throw new TypeError(
-      "Expected the sixth parameter to be greater than or equal to the second parameter"
+      "maxWait must be greater than or equal to wait"
     );
   }
 
-  // Function Definition
-  let timeout; // Stores the timeout ID
-  let results = []; // Stores the results of the original function
-  let cache = new Map(); // Stores the cached results of the original function
-  let lastExecuted = 0; // Stores the timestamp of the last time the original function was executed
-  let canceled = false; // Flag to track whether the function has been canceled
+  // State variables
+  let timeoutId = null; // Stores the timeout ID
+  let cache = new Map(); // Stores the cached results
+  let lastCallTime = 0; // Timestamp of the last invocation of the debounced function
+  let lastInvokeTime = 0; // Timestamp of the last execution of the original function
+  let trailingArgs = null; // Arguments for the trailing edge call
+  let trailingContext = null; // Context for the trailing edge call
+  let trailingResolve = null; // Promise resolve function for trailing call
+  let trailingReject = null; // Promise reject function for trailing call
 
-  const debounced = function executedFunction(...args) {
-    return new Promise((resolve) => {
-
-      function execute(func = () => { }, wait = 0, callNow = false, lastExecuted = 0) {
-
-        // console.log('First parameter received: ', func);
-        // console.log('Second parameter received: ', wait);
-        // console.log('Third parameter received: ', callNow);
-        // console.log('Fourth parameter received: ', lastExecuted);
-
-        const timeSinceLast = Date.now() - lastExecuted;
-
-        if (typeof func !== 'function') {
-          return Promise.reject(new Error('Expected a function for the first parameter'));
+  // Function to execute the original function
+  const invokeFunc = (time, args, currentContext, resolve, reject) => {
+    lastInvokeTime = time;
+    try {
+      const result = func.apply(currentContext, args);
+      // Handle potential promises returned by func
+      Promise.resolve(result).then(
+        (value) => {
+          if (maxCacheSize > 0) {
+             const cacheKey = JSON.stringify(args); // Use stringify for simplicity here
+             cache.set(cacheKey, value);
+             // Evict oldest entry if cache exceeds size limit
+             if (cache.size > maxCacheSize) {
+                 cache.delete(cache.keys().next().value);
+             }
+          }
+          resolve(value);
+        },
+        (error) => {
+           reject(error); // Reject if the promise returned by func rejects
         }
-        if (typeof wait !== 'number' || isNaN(wait) || wait <= 0) {
-          return Promise.reject(new Error('Expected a number for the second parameter'));
-        }
-        if (typeof timeSinceLast !== 'number' || isNaN(timeSinceLast) || timeSinceLast < 0) {
-          return Promise.reject(new Error('Invalid timeSinceLast value'));
-        }
+      );
+    } catch (error) {
+      reject(error); // Reject if func throws synchronously
+    }
+  };
 
-        if (callNow || timeSinceLast >= wait || (maxWait !== null && timeSinceLast >= maxWait)) {
-          func();
-          return Promise.resolve(Date.now());
-        }
-        const remainingTime = wait - timeSinceLast;
-        if (remainingTime <= 0) {
-          return Promise.resolve(Date.now());
-        }
+  // Function to handle the timer expiry
+  const timerExpired = () => {
+    const time = Date.now();
+    // Should invoke if trailing call waiting and time criteria met
+    const shouldInvoke = trailingArgs && (
+        !maxWait || (time - lastCallTime >= maxWait) // Enough time passed since last call (maxWait)
+        // Note: wait condition is implicitly handled by setting the timer
+    );
 
-        return new Promise((resolve) => setTimeout(() => resolve(Date.now()), remainingTime));
+    if (shouldInvoke) {
+        invokeFunc(time, trailingArgs, trailingContext, trailingResolve, trailingReject);
+    }
+     // Reset state
+    timeoutId = null;
+    trailingArgs = null;
+    trailingContext = null;
+    trailingResolve = null;
+    trailingReject = null;
+ };
+
+
+  // The debounced function returned to the user
+  const debounced = function (...args) {
+    return new Promise((resolve, reject) => {
+      const time = Date.now();
+      const isInvoking = !!timeoutId; // Is there already a pending timer?
+      lastCallTime = time;
+      const cacheKey = JSON.stringify(args); // Use stringify for simplicity
+
+      // Return cached result if available
+      if (maxCacheSize > 0 && cache.has(cacheKey)) {
+        resolve(cache.get(cacheKey));
+        return; // Don't proceed with debouncing if cached
       }
 
-      // Define the execution conditions
-      const callNow = immediate && !timeout; // Check if we are in the first execution
-      const timeSinceLast = Date.now() - lastExecuted; // Time since last execution
-      const shouldExecute = maxWait !== null && timeSinceLast >= maxWait; // Check if the maximum wait time has been exceeded
-      clearTimeout(timeout); // Clear the timeout
-      if (shouldExecute) {
-        timeout = setTimeout(execute, timeSinceLast);
+      // Determine if this is a leading edge call
+      const callNow = immediate && !isInvoking;
+
+      // Store args/context/promises for potential trailing call
+      trailingArgs = args;
+      trailingContext = context || this; // Use provided context or function's 'this'
+      trailingResolve = resolve;
+      trailingReject = reject;
+
+      if (callNow) {
+        // Invoke immediately
+        invokeFunc(time, args, trailingContext, resolve, reject);
+        // Start the timer for the cooldown period after immediate invocation
+        timeoutId = setTimeout(timerExpired, wait);
       } else {
-        timeout = setTimeout(() => execute(func, wait, callNow, lastExecuted), maxWait !== null ? maxWait : wait);
-      }
+        // Reset the timer for a trailing edge call or subsequent calls
+        clearTimeout(timeoutId);
+        const timeSinceLastInvoke = time - lastInvokeTime;
+        const remainingWait = wait - (time - lastCallTime); // Should be time since *this* call started waiting
+        const timeUntilInvoke = maxWait === null
+            ? wait // Standard wait time
+            : Math.min(wait, maxWait - timeSinceLastInvoke); // Consider maxWait limit
 
-      // Check if we should execute the function immediately
-      if (callNow && !shouldExecute) {
-        const result = func.apply(context, args); // Execute the function
-        results.push(result); // Store the result
-        cache.set(JSON.stringify(args), result); // Cache the result
-        cache.size > maxCacheSize && cache.delete(cache.keys() // Remove the oldest entry if the cache size exceeds the maximum
-          .next() // Get the first entry
-          .value); // Get the key of the first entry
-        resolve(result); // Resolve the promise
-        lastExecuted = Date.now(); // Update the last executed timestamp
+        timeoutId = setTimeout(timerExpired, timeUntilInvoke > 0 ? timeUntilInvoke : 0);
       }
-      const cachedResult = cache.get(JSON.stringify(args)); // Check if the result is cached
-      if (cachedResult !== undefined) {
-        resolve(cachedResult); // Resolve the promise with the cached result
-      }
-    })
-      .finally(() => {
-        if (canceled) {
-          results = []; // Clear the results
-          cache.clear(); // Clear the cache
-        }
-        canceled = false; // Reset the canceled flag
-      });
+    });
   };
 
+  // Cancel method
   debounced.cancel = function () {
-    clearTimeout(timeout); // Clear the timeout
-    canceled = true; // Set the canceled flag
+    clearTimeout(timeoutId);
+    lastInvokeTime = 0;
+    timeoutId = null;
+    trailingArgs = null;
+    trailingContext = null;
+    // Reject any pending promise if cancelled
+    if (trailingReject) {
+        trailingReject(new Error('Debounced function call was cancelled.'));
+    }
+    trailingResolve = null;
+    trailingReject = null;
+    // Optionally clear cache on cancel? debated. Let's leave cache intact.
+    // cache.clear();
   };
 
-  debounced.result = function () {
-    return results; // Return the results
-  };
+  // Flush method (Optional - Add later if needed)
+  // debounced.flush = function() { ... }
 
   return debounced; // Return the debounced function
 }
