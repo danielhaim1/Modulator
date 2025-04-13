@@ -4,7 +4,7 @@ Modulator
 [![npm version](https://img.shields.io/npm/v/@danielhaim/modulator)](https://www.npmjs.com/package/@danielhaim/modulator)
 [![Downloads](https://img.shields.io/npm/dt/@danielhaim/modulator.svg)](https://www.npmjs.com/package/@danielhaim/modulator)
 ![GitHub](https://img.shields.io/github/license/danielhaim1/modulator)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/danielhaim1/modulator/node.js.yml?branch=main)](https://github.com/danielhaim1/modulator/actions/workflows/node.js.yml)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/danielhaim1/modulator/build.yml?branch=main)](https://github.com/danielhaim1/modulator/actions/workflows/build.yml)
 [![TypeScript definitions](https://img.shields.io/npm/types/@danielhaim/modulator)](https://www.npmjs.com/package/@danielhaim/modulator)
 
 Modulator is an advanced debouncing utility, now written in **TypeScript**, designed to optimize high-frequency events in web applications (e.g., scroll, resize, input). This standalone solution offers enhanced performance and flexibility compared to basic debouncing functions.
@@ -110,6 +110,7 @@ requirejs(['path/to/modulator.amd'], function(Modulator) {
 });
 ```
 
+### `modulate(func, wait, immediate?, context?, maxCacheSize?, maxWait?)`
 ### `modulate(func, wait, immediate?, context?, maxCacheSize?, maxWait?)` ###
 
 Creates a debounced function that delays invoking `func` until after `wait` milliseconds have elapsed since the last time the debounced function was invoked.
