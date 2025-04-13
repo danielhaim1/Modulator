@@ -1,0 +1,48 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x] # Test on multiple node versions
+
+    steps:
+    - uses: actions/checkout@v4 # Use latest checkout action
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4 # Use latest setup-node action
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm' # Enable npm caching
+
+    - name: Install dependencies
+      run: npm ci # Use npm ci for cleaner installs in CI
+
+    - name: Check types
+      run: npm run typecheck
+
+    - name: Run tests
+      run: npm test
+
+    - name: Build package
+      run: npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-node-${{ matrix.node-version }} # Name the artifact uniquely per Node version
+        path: dist/ # Specify the directory to upload
+
+    # Optional: Add step to upload build artifacts if needed
+    # - uses: actions/upload-artifact@v4
+    #   with:
+    #     name: dist-${{ matrix.node-version }}
+    #     path: dist/ 
