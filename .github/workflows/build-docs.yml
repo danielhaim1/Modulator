@@ -6,12 +6,17 @@ on:
     branches:
       - main
 
+# --- Add permissions for the GITHUB_TOKEN ---
+permissions:
+  contents: write # Allow write access to repo contents (needed for pushing gh-pages branch)
+
 jobs:
   build-and-deploy-docs: # Renamed job ID for clarity
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4 # Use latest checkout action
+    - name: Checkout repository
+      uses: actions/checkout@v4 # Use latest checkout action
 
     # Note: Node.js install step might be unnecessary if only building docs,
     # unless Jekyll build process *requires* Node.js for some reason.
@@ -40,6 +45,10 @@ jobs:
     - name: Build Jekyll site
       working-directory: ./docs
       run: bundle exec jekyll build
+
+    # --- Add step to list build output for debugging ---
+    - name: Verify build output directory
+      run: ls -la ./docs/_site
 
     # --- Deployment Step ---
     - name: Deploy to GitHub Pages
