@@ -94,3 +94,27 @@ _site/
 *.sublime-workspace
 nbproject
 Thumbs.db
+
+# Build output
+dist/
+
+# Test / Coverage
+coverage/
+
+# Dependencies
+node_modules/
+
+# Logs
+# ...
+
+# OS / Editor folders
+# ...
+
+# Jekyll / Docs build
+docs/Gemfile.lock
+
+# SASS Cache
+.sass-cache/
+
+# Other
+# ...
