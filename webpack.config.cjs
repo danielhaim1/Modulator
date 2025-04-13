@@ -89,4 +89,80 @@ module.exports = [ {
 		}, ]
 	},
 	externals: [ nodeExternals () ]
+}, {
+    mode: "production",
+    target: "web",
+    entry: "./index.js",
+    output: {
+        filename: "modulator.umd.js",
+        path: path.resolve(__dirname, "dist"),
+        library: "Modulator",
+        libraryTarget: "umd",
+        globalObject: 'this'
+    },
+    optimization: {
+        minimize: true,
+        minimizer: [new TerserPlugin(terserOptions)],
+    },
+    plugins: [
+        new webpack.BannerPlugin({
+            banner: banner,
+            raw: true
+        })
+    ],
+    module: {
+        rules: [ {
+            test: /\\.js$/,
+            exclude: /(node_modules|bower_components)/,
+            use: {
+                loader: "babel-loader",
+                options: {
+                    presets: [ [ "@babel/preset-env", {
+                        targets: {
+                            browsers: [ "last 5 versions", "safari >= 7", "ie >= 11" ]
+                        },
+                    }, ], ]
+                }
+            }
+        }, ]
+    }
+}, {
+    mode: "production",
+    target: "web",
+    entry: "./src/index.js",
+    experiments: {
+        outputModule: true,
+    },
+    output: {
+        filename: "modulator.esm.js",
+        path: path.resolve(__dirname, "dist"),
+        library: {
+          type: 'module',
+        },
+    },
+    optimization: {
+        minimize: true,
+        minimizer: [new TerserPlugin(terserOptions)],
+    },
+    plugins: [
+        new webpack.BannerPlugin({
+            banner: banner,
+            raw: true
+        })
+    ],
+    module: {
+        rules: [ {
+            test: /\\.js$/,
+            exclude: /node_modules/,
+            use: {
+                loader: "babel-loader",
+                options: {
+                    presets: [ [ "@babel/preset-env", {
+                        targets: { esmodules: true },
+                        modules: false
+                    }]]
+                }
+            }
+        }, ]
+    }
 }, ];

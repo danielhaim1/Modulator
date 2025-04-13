@@ -1,0 +1,34 @@
+# Config files
+babel.config.cjs
+webpack.config.cjs
+jest.config.cjs
+jsdoc.json
+
+# Source and Tests
+src/
+__test__/
+
+# Git specific
+.git/
+.gitignore
+.gitattributes
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Editor specific
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Build cache/logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Other
+.nvmrc
+docs/
+.github/ 
