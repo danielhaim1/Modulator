@@ -40,14 +40,14 @@
     "generate-docs": "jsdoc -c jsdoc.json",
     "build": "webpack --config webpack.config.cjs",
     "build-docs": "cd docs && bundle install && bundle exec jekyll build",
-    "release": "npm run test && npm run build && npm version patch && git push && git tag v$(npm view . version) && git push --tags && npm publish",
-    "release-major": "npm run test && npm run build && npm version major && git push && git tag v$(npm view . version) && git push --tags && npm publish",
-    "release-minor": "npm run test && npm run build && npm version minor && git push && git tag v$(npm view . version) && git push --tags && npm publish",
+    "release": "npm run typecheck && npm run test && npm run build && npm version patch -m 'Release: patch v%s' && git push && git push --tags && npm publish",
+    "release:major": "npm run typecheck && npm run test && npm run build && npm version major -m 'Release: major v%s' && git push && git push --tags && npm publish",
+    "release:minor": "npm run typecheck && npm run test && npm run build && npm version minor -m 'Release: minor v%s' && git push && git push --tags && npm publish",
     "test": "jest --config=jest.config.cjs",
     "test:watch": "jest --watch --config=jest.config.cjs",
     "test:coverage": "jest --coverage --config=jest.config.cjs",
     "tree": "tree -I 'node_modules|dist'",
-    "clean": "rm -rf dist/ && mkdir dist/",
+    "clean": "rm -rf dist/",
     "typecheck": "tsc --noEmit"
   },
   "engines": {
