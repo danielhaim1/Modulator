@@ -149,19 +149,19 @@ describe('Modulator Error Handling & Cancel', () => {
 describe('Modulator Parameter Validation', () => {
     test("Should throw an error if the first parameter is not a function", () => {
 		// Need to cast null to any to satisfy TS before runtime check
-		expect(() => modulate(null as any, 500)).toThrowError(TypeError);
+		expect(() => modulate(null as any, 500)).toThrow(TypeError);
 	});
 	test("Should throw an error if the second parameter is not a non-negative number", () => {
         // Cast to any for invalid types
-		expect(() => modulate(() => {}, "500" as any)).toThrowError(TypeError);
-		expect(() => modulate(() => {}, NaN)).toThrowError(TypeError);
-        expect(() => modulate(() => {}, -100)).toThrowError(TypeError);
+		expect(() => modulate(() => {}, "500" as any)).toThrow(TypeError);
+		expect(() => modulate(() => {}, NaN)).toThrow(TypeError);
+        expect(() => modulate(() => {}, -100)).toThrow(TypeError);
 	});
     // ... other validation tests similarly using 'as any' for invalid types if needed ...
     test("Should throw an error if the third parameter is not a boolean", () => {
-		expect(() => modulate(() => {}, 500, "false" as any)).toThrowError(TypeError);
+		expect(() => modulate(() => {}, 500, "false" as any)).toThrow(TypeError);
 	});
      test("Should throw an error if maxWait is less than wait", () => {
-		expect(() => modulate(() => {}, 500, false, null, 100, 400)).toThrowError(TypeError);
+		expect(() => modulate(() => {}, 500, false, null, 100, 400)).toThrow(TypeError);
 	});
 }); 
