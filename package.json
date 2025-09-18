@@ -1,6 +1,6 @@
 {
   "name": "@danielhaim/modulator",
-  "version": "2.3.2",
+  "version": "2.4.0",
   "description": "An advanced debouncing utility designed to optimize high-frequency events in web applications, such as scroll, resize, and input.",
   "keywords": [
     "debounce",
